@@ -201,6 +201,8 @@ public:
    * 1. Linearly interpolated in time for scalar values
    * 2. Vector interpolated (2D) for wind and current vectors to maintain
    * physical consistency
+   * The exact interpolation and smoothing methods used depend on the preferences
+   * chosen by the user in the plugin preferences dialog
    *
    * @note This function does NOT perform spatial (lat/lon) interpolation.
    *
@@ -251,9 +253,12 @@ public:
   void SetScaledBitmap(double factor);
   void OpenFileFromJSON(wxString json);
 
-  //
+  /// Find closest Grib records before and after the given time.  Interpolate spatially at given lon/lat and then temporally
+  // Note: To interpolate vector values like wind with InterpolationMethod::VECTOR, use getTimeInterpolatedValues()
   double getTimeInterpolatedValue(int idx, double lon, double lat,
                                   wxDateTime t);
+
+  /// Find closest Grib records before and after the given time.  Interpolate spatially at given lon/lat and then temporally
   bool getTimeInterpolatedValues(double &M, double &A, int idx1, int idx2,
                                  double lon, double lat, wxDateTime t);
 

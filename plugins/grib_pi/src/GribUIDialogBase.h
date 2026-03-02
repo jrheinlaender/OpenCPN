@@ -426,6 +426,7 @@ protected:
   virtual void OnStartOptionChange(wxCommandEvent& event) { event.Skip(); }
   virtual void OnOKClick(wxCommandEvent& event) { event.Skip(); }
   void OnDirSelClick(wxCommandEvent& event);
+  void OnApproximationResetClick(wxCommandEvent& event);
 
 public:
   wxCheckBox* m_cbUseHiDef;
@@ -438,6 +439,13 @@ public:
   wxRadioBox* m_rbStartOptions;
   wxString m_grib_dir_sel;
   wxTextCtrl* m_textDirectory;
+
+  wxRadioBox* m_pRbSpatialInterpolation;
+  wxRadioBox* m_pRbSpatialWindcurrent;
+  wxRadioBox* m_pRbSpatialSmoothing;
+  wxRadioBox* m_pRbTemporalInterpolation;
+  wxRadioBox* m_pRbTemporalWindcurrent;
+  wxRadioBox* m_pRbTemporalSmoothing;
 
 #ifdef __WXMSW__
   wxSlider* m_sIconSizeFactor;

@@ -2100,6 +2100,15 @@ GribSettingsDialogBase::~GribSettingsDialogBase() {
       wxCommandEventHandler(GribSettingsDialogBase::OnApply), nullptr, this);
 }
 
+namespace {
+  constexpr int default_spatial_interpolation = 1; // Bilinear is the default
+  constexpr int default_spatial_windcurrent = 1; // Magnitude and angle interpolation is the default
+  constexpr int default_spatial_smoothing = 1; // Pseudo hermite is the default
+  constexpr int default_temporal_interpolation = 1; // Linear is the default
+  constexpr int default_temporal_windcurrent = 1; // Magnitude and angle interpolation is the default
+  constexpr int default_temporal_smoothing = 0; // No smoothing is the default
+}
+
 #ifndef __OCPN__ANDROID__
 GribPreferencesDialogBase::GribPreferencesDialogBase(
     wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos,
@@ -2137,9 +2146,10 @@ GribPreferencesDialogBase::GribPreferencesDialogBase(
 
   itemBoxSizerMainPanel->Add(m_sdbSizer2, 0, wxEXPAND | wxALL, 5);
 
-  wxStaticBoxSizer* sbSizer9;
-  sbSizer9 = new wxStaticBoxSizer(
-      new wxStaticBox(scrollWin, wxID_ANY, _("General Options")), wxVERTICAL);
+  wxNotebook* p_notebook = new wxNotebook(scrollWin, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0);
+  bSizerPrefsMain->Add(p_notebook, 1, wxEXPAND | wxALL, 0);
+  wxPanel* p_generalpanel = new wxPanel(p_notebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+  wxBoxSizer* p_sizergeneral = new wxBoxSizer( wxVERTICAL );
 
   wxFlexGridSizer* fgSizer46;
   fgSizer46 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -2147,38 +2157,44 @@ GribPreferencesDialogBase::GribPreferencesDialogBase(
   fgSizer46->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
 
   m_cbUseHiDef =
-      new wxCheckBox(scrollWin, wxID_ANY, _("Use High Definition Graphics"),
+      new wxCheckBox(p_generalpanel, wxID_ANY, _("Use High Definition Graphics"),
                      wxDefaultPosition, wxDefaultSize, 0);
   fgSizer46->Add(m_cbUseHiDef, 0, wxALL, 5);
 
   m_cbUseGradualColors =
-      new wxCheckBox(scrollWin, wxID_ANY, _("Use Gradual Colors"),
+      new wxCheckBox(p_generalpanel, wxID_ANY, _("Use Gradual Colors"),
                      wxDefaultPosition, wxDefaultSize, 0);
   fgSizer46->Add(m_cbUseGradualColors, 0, wxALL, 5);
 
   m_cbCopyFirstCumulativeRecord = new wxCheckBox(
-      scrollWin, wxID_ANY, _("Copy First Cumulative Missing Record"),
+      p_generalpanel, wxID_ANY, _("Copy First Cumulative Missing Record"),
       wxDefaultPosition, wxDefaultSize, 0);
   fgSizer46->Add(m_cbCopyFirstCumulativeRecord, 0, wxALL, 5);
 
   m_cbCopyMissingWaveRecord =
-      new wxCheckBox(scrollWin, wxID_ANY, _("Copy Missing Wave Records"),
+      new wxCheckBox(p_generalpanel, wxID_ANY, _("Copy Missing Wave Records"),
                      wxDefaultPosition, wxDefaultSize, 0);
   fgSizer46->Add(m_cbCopyMissingWaveRecord, 0, wxALL, 5);
 
   m_cbDrawBarbedArrowHead =
-      new wxCheckBox(scrollWin, wxID_ANY, _("Draw Barbed Arrows Head"),
+      new wxCheckBox(p_generalpanel, wxID_ANY, _("Draw Barbed Arrows Head"),
                      wxDefaultPosition, wxDefaultSize, 0);
   fgSizer46->Add(m_cbDrawBarbedArrowHead, 0, wxALL, 5);
 
   m_cZoomToCenterAtInit =
-      new wxCheckBox(scrollWin, wxID_ANY, _("Zoom to file center when opened"),
+      new wxCheckBox(p_generalpanel, wxID_ANY, _("Zoom to file center when opened"),
                      wxDefaultPosition, wxDefaultSize, 0);
   fgSizer46->Add(m_cZoomToCenterAtInit, 0, wxALL, 5);
 
-  sbSizer9->Add(fgSizer46, 1, wxEXPAND, 5);
+  p_sizergeneral->Add(fgSizer46, 1, wxEXPAND, 5);
 
-  bSizerPrefsMain->Add(sbSizer9, 1, wxEXPAND, 5);
+  p_generalpanel->SetSizer(p_sizergeneral);
+  p_generalpanel->Layout();
+  p_sizergeneral->Fit(p_generalpanel);
+  p_notebook->AddPage(p_generalpanel, _("General Options"), false);
+
+  wxPanel* p_loadoptionspanel = new wxPanel(p_notebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+  wxBoxSizer* p_sizerloadoptions = new wxBoxSizer( wxVERTICAL );
 
   wxString m_rbLoadOptionsChoices[] = {
       _("Load the More Recent File in Directory"),
@@ -2186,25 +2202,33 @@ GribPreferencesDialogBase::GribPreferencesDialogBase(
   int m_rbLoadOptionsNChoices =
       sizeof(m_rbLoadOptionsChoices) / sizeof(wxString);
   m_rbLoadOptions =
-      new wxRadioBox(scrollWin, wxID_ANY, _("Load File Options"),
+      new wxRadioBox(p_loadoptionspanel, wxID_ANY, _("Load File Options"),
                      wxDefaultPosition, wxDefaultSize, m_rbLoadOptionsNChoices,
                      m_rbLoadOptionsChoices, 1, wxRA_SPECIFY_COLS);
   m_rbLoadOptions->SetSelection(0);
-  bSizerPrefsMain->Add(m_rbLoadOptions, 0, wxALL | wxEXPAND, 5);
+  p_sizerloadoptions->Add(m_rbLoadOptions, 0, wxALL | wxEXPAND, 5);
 
   wxStaticBoxSizer* sbSizerFolder;
   sbSizerFolder = new wxStaticBoxSizer(
-      new wxStaticBox(this, wxID_ANY, _("Grib File Directory")), wxHORIZONTAL);
+      new wxStaticBox(p_loadoptionspanel, wxID_ANY, _("Grib File Directory")), wxHORIZONTAL);
 
   m_textDirectory =
-      new wxTextCtrl(scrollWin, wxID_ANY, wxEmptyString, wxDefaultPosition,
+      new wxTextCtrl(p_loadoptionspanel, wxID_ANY, wxEmptyString, wxDefaultPosition,
                      wxDefaultSize, wxTE_READONLY);
   sbSizerFolder->Add(m_textDirectory, 1, wxALL, 5);
 
-  wxButton* dbFolderButton = new wxButton(scrollWin, wxID_ANY, _("Browse..."));
+  wxButton* dbFolderButton = new wxButton(p_loadoptionspanel, wxID_ANY, _("Browse..."));
   sbSizerFolder->Add(dbFolderButton, 0, wxALL, 5);
 
-  bSizerPrefsMain->Add(sbSizerFolder, 0, wxALL | wxEXPAND, 5);
+  p_sizerloadoptions->Add(sbSizerFolder, 0, wxALL | wxEXPAND, 5);
+
+  p_loadoptionspanel->SetSizer(p_sizerloadoptions);
+  p_loadoptionspanel->Layout();
+  p_sizerloadoptions->Fit(p_loadoptionspanel);
+  p_notebook->AddPage(p_loadoptionspanel, _("Load File Options"), false);
+
+  wxPanel* p_startoptionspanel = new wxPanel(p_notebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+  wxBoxSizer* p_sizerstartoptions = new wxBoxSizer( wxVERTICAL );
 
   wxString m_rbStartOptionsChoices[] = {
       _("Start at the first forecast in GRIB file"),
@@ -2213,10 +2237,92 @@ GribPreferencesDialogBase::GribPreferencesDialogBase(
   int m_rbStartOptionsNChoices =
       sizeof(m_rbStartOptionsChoices) / sizeof(wxString);
   m_rbStartOptions = new wxRadioBox(
-      scrollWin, wxID_ANY, _("Start Options"), wxDefaultPosition, wxDefaultSize,
+      p_startoptionspanel, wxID_ANY, "", wxDefaultPosition, wxDefaultSize,
       m_rbStartOptionsNChoices, m_rbStartOptionsChoices, 1, wxRA_SPECIFY_COLS);
   m_rbStartOptions->SetSelection(0);
-  bSizerPrefsMain->Add(m_rbStartOptions, 0, wxALL | wxEXPAND, 5);
+  p_sizerstartoptions->Add(m_rbStartOptions, 0, wxALL | wxEXPAND, 5);
+
+  p_startoptionspanel->SetSizer(p_sizerstartoptions);
+  p_startoptionspanel->Layout();
+  p_sizerstartoptions->Fit(p_startoptionspanel);
+  p_notebook->AddPage(p_startoptionspanel, _("Start Options"), false);
+
+  wxPanel* p_approximationpanel = new wxPanel(p_notebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+  wxBoxSizer* p_sizerapproximation = new wxBoxSizer( wxVERTICAL );
+
+  wxStaticBoxSizer* p_sbsizer_spatial;
+  p_sbsizer_spatial = new wxStaticBoxSizer(
+      new wxStaticBox(p_approximationpanel, wxID_ANY, _("Spatial")), wxVERTICAL);
+
+  m_pRbSpatialInterpolation = new wxRadioBox(
+      p_approximationpanel, wxID_ANY, _("Interpolation"), wxDefaultPosition, wxDefaultSize,
+      {_("Nearest neighbour"), _("Bilinear from four neighbours")}, 0, wxRA_SPECIFY_COLS);
+  m_pRbSpatialInterpolation->SetSelection(default_spatial_interpolation);
+  p_sbsizer_spatial->Add(m_pRbSpatialInterpolation, 0, wxALL | wxEXPAND, 5);
+
+  m_pRbSpatialWindcurrent = new wxRadioBox(
+      p_approximationpanel, wxID_ANY, _("Wind/Current handling"), wxDefaultPosition, wxDefaultSize,
+      {_("Component-wise"), _("Magnitude and angle")}, 0, wxRA_SPECIFY_COLS);
+  m_pRbSpatialWindcurrent->SetSelection(default_spatial_windcurrent);
+  p_sbsizer_spatial->Add(m_pRbSpatialWindcurrent, 0, wxALL | wxEXPAND, 5);
+
+  m_pRbSpatialSmoothing = new wxRadioBox(
+      p_approximationpanel, wxID_ANY, _("Smoothing"), wxDefaultPosition, wxDefaultSize,
+      {_("No smoothing"), _("Pseudo hermite (continuous derivative)")}, 0, wxRA_SPECIFY_COLS);
+  m_pRbSpatialSmoothing->SetSelection(default_spatial_smoothing);
+  p_sbsizer_spatial->Add(m_pRbSpatialSmoothing, 0, wxALL | wxEXPAND, 5);
+
+  p_sizerapproximation->Add(p_sbsizer_spatial, 0, wxALL, 5);
+
+  wxStaticBoxSizer* p_sbsizer_temporal;
+  p_sbsizer_temporal = new wxStaticBoxSizer(
+      new wxStaticBox(p_approximationpanel, wxID_ANY, _("Temporal")), wxVERTICAL);
+
+  m_pRbTemporalInterpolation = new wxRadioBox(
+      p_approximationpanel, wxID_ANY, _("Interpolation"), wxDefaultPosition, wxDefaultSize,
+      {_("Nearest timeline"), _("Linear")}, 0, wxRA_SPECIFY_COLS);
+  m_pRbTemporalInterpolation->SetSelection(default_temporal_interpolation);
+  p_sbsizer_temporal->Add(m_pRbTemporalInterpolation, 0, wxALL | wxEXPAND, 5);
+
+  m_pRbTemporalWindcurrent = new wxRadioBox(
+      p_approximationpanel, wxID_ANY, _("Wind/Current handling"), wxDefaultPosition, wxDefaultSize,
+      {_("Component-wise"), _("Magnitude and angle")}, 0, wxRA_SPECIFY_COLS);
+  m_pRbTemporalWindcurrent->SetSelection(default_temporal_windcurrent);
+  p_sbsizer_temporal->Add(m_pRbTemporalWindcurrent, 0, wxALL | wxEXPAND, 5);
+
+  m_pRbTemporalSmoothing = new wxRadioBox(
+      p_approximationpanel, wxID_ANY, _("Smoothing"), wxDefaultPosition, wxDefaultSize,
+      {_("No smoothing"), _("Pseudo hermite (continuous derivative)")}, 0, wxRA_SPECIFY_COLS);
+  m_pRbTemporalSmoothing->SetSelection(default_temporal_smoothing);
+  p_sbsizer_temporal->Add(m_pRbTemporalSmoothing, 0, wxALL | wxEXPAND, 5);
+
+  p_sizerapproximation->Add(p_sbsizer_temporal, 0, wxALL, 5);
+
+  wxStaticBoxSizer* p_sbsizer_warning = new wxStaticBoxSizer(
+      new wxStaticBox(p_approximationpanel, wxID_ANY, _("Warning")), wxBOTH);
+
+  wxStaticText* p_warning = new wxStaticText(p_approximationpanel, wxID_ANY, _("Warning"), wxDefaultPosition, wxDefaultSize);
+  p_warning->SetLabel(_("Any kind of approximation may 'invent' weather in between known forecasts that may have nothing to do with actual conditions. "
+                                            "The only approximations that are considered meterologically safe are the defaults, which you can restore via the button below. "
+                                            "Use all other settings at your own risk!"));
+  p_warning->Wrap(GetClientSize().GetWidth());
+  p_sbsizer_warning->Add(p_warning, 0, wxALL, 5);
+  p_sizerapproximation->Add(p_sbsizer_warning, 0, wxALL, 5);
+
+  wxFlexGridSizer* p_buttons_approximation = new wxFlexGridSizer( 1, 0, 0, 0 );
+	p_buttons_approximation->AddGrowableCol( 2 );
+	p_buttons_approximation->SetFlexibleDirection( wxBOTH );
+	p_buttons_approximation->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
+  wxButton* p_button_resetdefault  = new wxButton(p_approximationpanel, wxID_ANY, _("Reset to default"), wxDefaultPosition, wxDefaultSize, 0 );
+	p_buttons_approximation->Add( p_button_resetdefault, 0, wxALL, 5 );
+
+  p_sizerapproximation->Add(p_buttons_approximation, 0, wxEXPAND | wxALL, 5);
+
+  p_approximationpanel->SetSizer(p_sizerapproximation);
+  p_approximationpanel->Layout();
+  p_sizerapproximation->Fit(p_approximationpanel);
+  p_notebook->AddPage(p_approximationpanel, _("Approximations"), true);
+  p_notebook->SetSelection(0);
 
 #ifdef __WXMSW__
   wxFlexGridSizer* fgSizer47;
@@ -2248,6 +2354,10 @@ GribPreferencesDialogBase::GribPreferencesDialogBase(
   dbFolderButton->Connect(
       wxEVT_COMMAND_BUTTON_CLICKED,
       wxCommandEventHandler(GribPreferencesDialogBase::OnDirSelClick), nullptr,
+      this);
+  p_button_resetdefault->Connect(
+      wxEVT_COMMAND_BUTTON_CLICKED,
+      wxCommandEventHandler(GribPreferencesDialogBase::OnApproximationResetClick), nullptr,
       this);
 }
 #else
@@ -2379,6 +2489,15 @@ void GribPreferencesDialogBase::OnDirSelClick(wxCommandEvent& event) {
     m_grib_dir_sel = dir_spec;
     m_textDirectory->ChangeValue(dir_spec);
   }
+}
+
+void GribPreferencesDialogBase::OnApproximationResetClick(wxCommandEvent&) {
+  m_pRbSpatialInterpolation->SetSelection(default_spatial_interpolation);
+  m_pRbSpatialWindcurrent->SetSelection(default_spatial_windcurrent);
+  m_pRbSpatialSmoothing->SetSelection(default_spatial_smoothing);
+  m_pRbTemporalInterpolation->SetSelection(default_temporal_interpolation);
+  m_pRbTemporalWindcurrent->SetSelection(default_temporal_windcurrent);
+  m_pRbTemporalSmoothing->SetSelection(default_temporal_smoothing);
 }
 
 wxStaticBoxSizer* GribRequestSettingBase::createAreaSelectionSection(

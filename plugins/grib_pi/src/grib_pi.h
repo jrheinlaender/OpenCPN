@@ -158,6 +158,12 @@ public:
    */
   bool GetCopyMissWaveRec() { return m_bCopyMissWaveRec; }
 
+  /// Return interpolation and smoothing settings from user preferences
+  GribRecord::InterpolationMethod GetSpatialInterpolation() const { return m_spatialInterpolation; }
+  GribRecord::SmoothingMethod GetSpatialSmoothing() const { return m_spatialSmoothing; }
+  GribRecord::InterpolationMethod GetTemporalInterpolation() const { return m_temporalInterpolation; }
+  GribRecord::SmoothingMethod GetTemporalSmoothing() const { return m_temporalSmoothing; }
+
   GRIBOverlayFactory *m_pGRIBOverlayFactory;
   GRIBOverlayFactory *GetGRIBOverlayFactory() { return m_pGRIBOverlayFactory; }
 
@@ -215,6 +221,10 @@ private:
   bool m_bCopyMissWaveRec;
   int m_bLoadLastOpenFile;
   int m_bStartOptions;
+  GribRecord::InterpolationMethod m_spatialInterpolation;
+  GribRecord::SmoothingMethod m_spatialSmoothing;
+  GribRecord::InterpolationMethod m_temporalInterpolation;
+  GribRecord::SmoothingMethod m_temporalSmoothing;
   wxString m_RequestConfig;
   wxString m_bMailToAddresses;
   wxString m_bMailFromAddress;

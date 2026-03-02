@@ -521,10 +521,12 @@ std::vector<GribRecord *> *GribReader::getListOfGribRecords(int dataType,
 //---------------------------------------------------------------------------
 double GribReader::getTimeInterpolatedValue(int dataType, int levelType,
                                             int levelValue, double px,
-                                            double py, time_t date) {
+                                            double py, time_t date,
+                                            const GribRecord::InterpolationMethod spatial_im, const GribRecord::SmoothingMethod spatial_sm,
+                                            const GribRecord::InterpolationMethod temporal_im, const GribRecord::SmoothingMethod temporal_sm) {
   GribRecord *before, *after;
   findGribsAroundDate(dataType, levelType, levelValue, date, &before, &after);
-  return get2GribsInterpolatedValueByDate(px, py, date, before, after);
+  return get2GribsInterpolatedValueByDate(px, py, date, before, after, spatial_im, spatial_sm, temporal_im, temporal_sm);
 }
 
 //------------------------------------------------------------------
@@ -554,21 +556,28 @@ void GribReader::findGribsAroundDate(int dataType, int levelType,
 double GribReader::get2GribsInterpolatedValueByDate(double px, double py,
                                                     time_t date,
                                                     GribRecord *before,
-                                                    GribRecord *after) {
+                                                    GribRecord *after,
+                                                    const GribRecord::InterpolationMethod spatial_im, const GribRecord::SmoothingMethod spatial_sm,
+                                                    const GribRecord::InterpolationMethod temporal_im, const GribRecord::SmoothingMethod temporal_sm) {
   double val = GRIB_NOTDEF;
   if (before != nullptr && after != nullptr) {
     if (before == after) {
-      val = before->getInterpolatedValue(px, py);
+      val = before->getInterpolatedValue(px, py, spatial_im, spatial_sm);
     } else {
       time_t t1 = before->getRecordCurrentDate();
       time_t t2 = after->getRecordCurrentDate();
       if (t1 == t2) {
-        val = before->getInterpolatedValue(px, py);
+        val = before->getInterpolatedValue(px, py, spatial_im, spatial_sm);
       } else {
-        double v1 = before->getInterpolatedValue(px, py);
-        double v2 = after->getInterpolatedValue(px, py);
+        double v1 = before->getInterpolatedValue(px, py, spatial_im, spatial_sm);
+        double v2 = after->getInterpolatedValue(px, py, spatial_im, spatial_sm);
         if (v1 != GRIB_NOTDEF && v2 != GRIB_NOTDEF) {
+          if (temporal_im == GribRecord::NEAREST)
+            return (date - t1 < t2 - date ? v1 : v2);
+
           double k = fabs((double)(date - t1) / (t2 - t1));
+          if (temporal_sm == GribRecord::PSEUDO_HERMITE)
+            k = (3.0 - 2.0*k) * k * k;
           val = (1.0 - k) * v1 + k * v2;
         }
       }
@@ -654,14 +663,14 @@ double GribReader::computeDewPoint(double lon, double lat, time_t now) {
   GribRecord *recTempDiew = getGribRecord(GRB_DEWPOINT, LV_ABOV_GND, 2, now);
   if (recTempDiew != nullptr) {
     // GRIB file contains diew point data
-    diewpoint = recTempDiew->getInterpolatedValue(lon, lat);
+    diewpoint = recTempDiew->getInterpolatedValue(lon, lat, GribRecord::VECTOR, GribRecord::PSEUDO_HERMITE);
   } else {
     // Compute diew point with Magnus-Tetens formula
     GribRecord *recTemp = getGribRecord(GRB_TEMP, LV_ABOV_GND, 2, now);
     GribRecord *recHumid = getGribRecord(GRB_HUMID_REL, LV_ABOV_GND, 2, now);
     if (recTemp && recHumid) {
-      double temp = recTemp->getInterpolatedValue(lon, lat);
-      double humid = recHumid->getInterpolatedValue(lon, lat);
+      double temp = recTemp->getInterpolatedValue(lon, lat, GribRecord::VECTOR, GribRecord::PSEUDO_HERMITE);
+      double humid = recHumid->getInterpolatedValue(lon, lat, GribRecord::VECTOR, GribRecord::PSEUDO_HERMITE);
       if (temp != GRIB_NOTDEF && humid != GRIB_NOTDEF) {
         double a = 17.27;
         double b = 237.7;
