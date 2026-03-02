@@ -84,12 +84,16 @@ public:
 
   // Valeur pour un point et une date quelconques
   double GetTimeInterpolatedValue(int dataType, int levelType, int levelValue,
-                                  double px, double py, time_t date);
+                                  double px, double py, time_t date,
+                                  const GribRecord::InterpolationMethod spatial_im, const GribRecord::SmoothingMethod spatial_sm,
+                                  const GribRecord::InterpolationMethod temporal_im, const GribRecord::SmoothingMethod temporal_sm);
 
   // Crée un GribRecord interpolé
   GribRecord *GetTimeInterpolatedGribRecord(int dataType, int levelType,
-                                            int levelValue, time_t date);
+                                            int levelValue, time_t date, const GribRecord::InterpolationMethod im, const GribRecord::SmoothingMethod sm);
 
+  // Note: This method does not do temporal interpolation or smoothing
+  // Note: This method uses scalar spatial interpolation und pseudo-hermite spatial smoothing
   double ComputeDewPoint(double lon, double lat, time_t date);
 
   int GetDewpointDataStatus(int levelType, int levelValue);
@@ -150,7 +154,9 @@ private:
   // Interpolation between 2 GribRecord
   double Get2GribsInterpolatedValueByDate(double px, double py, time_t date,
                                           GribRecord *before,
-                                          GribRecord *after);
+                                          GribRecord *after,
+                                          const GribRecord::InterpolationMethod spatial_im, const GribRecord::SmoothingMethod spatial_sm,
+                                          const GribRecord::InterpolationMethod temporal_im, const GribRecord::SmoothingMethod temporal_sm);
 
   // Détermine les GribRecord qui encadrent une date
   void FindGribsAroundDate(int dataType, int levelType, int levelValue,

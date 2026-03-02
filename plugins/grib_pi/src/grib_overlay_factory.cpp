@@ -42,6 +42,8 @@
 #include "grib_ui_dlg.h"
 #include "grib_overlay_factory.h"
 
+extern grib_pi *g_pi;
+
 extern int m_Altitude;
 extern bool g_bpause;
 extern double g_ContentScaleFactor;
@@ -1332,7 +1334,9 @@ void GRIBOverlayFactory::RenderGribBarbedArrows(int settings, GribRecord **pGR,
 
         // Get data value at this location
         double vkn, ang;
-        if (GribRecord::GetInterpolatedValues(vkn, ang, pGRX, pGRY, lon, lat)) {
+        if (GribRecord::GetInterpolatedValues(vkn, ang, pGRX, pGRY, lon, lat,
+                                              g_pi->GetSpatialInterpolation(),
+                                              g_pi->GetSpatialSmoothing())) {
           DrawWindArrowWithBarbs(settings, p.x, p.y, vkn * 3.6 / 1.852,
                                  (ang - 90) * M_PI / 180, (lat < 0.), colour,
                                  vp->rotation);
@@ -1634,12 +1638,17 @@ void GRIBOverlayFactory::RenderGribDirectionArrows(int settings,
         double scale = 1.0;
 
         if (polar) {  // wave arrows
-          sh = pGRX->GetInterpolatedValue(lon, lat, true);
-          dir = pGRY->GetInterpolatedValue(lon, lat, true, true);
+          sh = pGRX->GetInterpolatedValue(lon, lat,
+                                          g_pi->GetSpatialInterpolation(),
+                                          g_pi->GetSpatialSmoothing());
+          dir = pGRY->GetInterpolatedValue(lon, lat,
+                                           g_pi->GetSpatialInterpolation(),
+                                           g_pi->GetSpatialSmoothing(), true);
 
           if (dir == GRIB_NOTDEF || sh == GRIB_NOTDEF) continue;
         } else {  // current arrows
-          if (!GribRecord::GetInterpolatedValues(sh, dir, pGRX, pGRY, lon, lat))
+          if (!GribRecord::GetInterpolatedValues(sh, dir, pGRX, pGRY, lon, lat,
+                  g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing()))
             continue;
           scale = wxMax(1.0, sh);  // Size depends on magnitude.
         }
@@ -1716,8 +1725,10 @@ void GRIBOverlayFactory::RenderGribDirectionArrows(int settings,
 
               wdh = sh + 0.5;
             } else {
-              if (!GribRecord::GetInterpolatedValues(sh, dir, pGRX, pGRY, lon,
-                                                     lat, false))
+              if (!GribRecord::GetInterpolatedValues(
+                      sh, dir, pGRX, pGRY, lon, lat,
+                      g_pi->GetSpatialInterpolation(),
+                      g_pi->GetSpatialSmoothing()))
                 continue;
 
               wdh = (8 / 2.5 * sh) + 0.5;
