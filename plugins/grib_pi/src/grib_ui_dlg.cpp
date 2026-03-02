@@ -1490,16 +1490,28 @@ GribTimelineRecordSet *GRIBUICtrlBar::GetTimeLineRecordSet(wxDateTime time) {
     } else
       interp_const = (nminute - minute1) / (minute2 - minute1);
 
+    if (g_pi->GetTemporalInterpolation() == GribRecord::NEAREST) {
+      set->m_GribRecordPtrArray[i] = (interp_const < 0.5) ? GR1 :  GR2;
+      continue;
+    }
+
     /* if this is a vector interpolation use the 2d method */
     if (i < Idx_WIND_VY) {
       GribRecord *GR1y = GRS1->m_GribRecordPtrArray[i + Idx_WIND_VY];
       GribRecord *GR2y = GRS2->m_GribRecordPtrArray[i + Idx_WIND_VY];
       if (GR1y && GR2y) {
-        GribRecord *Ry;
-        set->SetUnRefGribRecord(
-            i, GribRecord::Interpolated2DRecord(Ry, *GR1, *GR1y, *GR2, *GR2y,
-                                                interp_const));
-        set->SetUnRefGribRecord(i + Idx_WIND_VY, Ry);
+        if (g_pi->GetTemporalInterpolation() == GribRecord::VECTOR) {
+          GribRecord *Ry;
+          set->SetUnRefGribRecord(
+              i, GribRecord::Interpolated2DRecord(Ry, *GR1, *GR1y, *GR2, *GR2y,
+                                                  interp_const, g_pi->GetTemporalSmoothing()));
+          set->SetUnRefGribRecord(i + Idx_WIND_VY, Ry);
+        } else {
+          set->SetUnRefGribRecord(
+            i, GribRecord::InterpolatedRecord(*GR1, *GR2, interp_const, g_pi->GetTemporalSmoothing(), false));
+          set->SetUnRefGribRecord(
+            i + Idx_WIND_VY, GribRecord::InterpolatedRecord(*GR1y, *GR2y, interp_const, g_pi->GetTemporalSmoothing(), false));
+        }
         continue;
       }
     } else if (i <= Idx_WIND_VY300)
@@ -1508,18 +1520,25 @@ GribTimelineRecordSet *GRIBUICtrlBar::GetTimeLineRecordSet(wxDateTime time) {
       GribRecord *GR1y = GRS1->m_GribRecordPtrArray[Idx_SEACURRENT_VY];
       GribRecord *GR2y = GRS2->m_GribRecordPtrArray[Idx_SEACURRENT_VY];
       if (GR1y && GR2y) {
-        GribRecord *Ry;
-        set->SetUnRefGribRecord(
-            i, GribRecord::Interpolated2DRecord(Ry, *GR1, *GR1y, *GR2, *GR2y,
-                                                interp_const));
-        set->SetUnRefGribRecord(Idx_SEACURRENT_VY, Ry);
+        if (g_pi->GetTemporalInterpolation() == GribRecord::VECTOR) {
+          GribRecord *Ry;
+          set->SetUnRefGribRecord(
+              i, GribRecord::Interpolated2DRecord(Ry, *GR1, *GR1y, *GR2, *GR2y,
+                                                  interp_const, g_pi->GetTemporalSmoothing()));
+          set->SetUnRefGribRecord(Idx_SEACURRENT_VY, Ry);
+        } else {
+          set->SetUnRefGribRecord(
+            i, GribRecord::InterpolatedRecord(*GR1, *GR2, interp_const, g_pi->GetTemporalSmoothing(), false));
+          set->SetUnRefGribRecord(
+            i + Idx_SEACURRENT_VY, GribRecord::InterpolatedRecord(*GR1y, *GR2y, interp_const, g_pi->GetTemporalSmoothing(), false));
+        }
         continue;
       }
     } else if (i == Idx_SEACURRENT_VY)
       continue;
 
     set->SetUnRefGribRecord(i, GribRecord::InterpolatedRecord(
-                                   *GR1, *GR2, interp_const, i == Idx_WVDIR));
+                                   *GR1, *GR2, interp_const, g_pi->GetTemporalSmoothing(), i == Idx_WVDIR));
   }
 
   set->m_Reference_Time = time.GetTicks();
@@ -1561,7 +1580,7 @@ double GRIBUICtrlBar::getTimeInterpolatedValue(int idx, double lon, double lat,
     if (!GR) continue;
 
     time_t curtime = GR->GetRecordCurrentDate();
-    if (curtime == t) return GR->GetInterpolatedValue(lon, lat);
+    if (curtime == t) return GR->GetInterpolatedValue(lon, lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing());
 
     if (curtime < t) before = GR;
 
@@ -1575,12 +1594,19 @@ double GRIBUICtrlBar::getTimeInterpolatedValue(int idx, double lon, double lat,
 
   time_t t1 = before->GetRecordCurrentDate();
   time_t t2 = after->GetRecordCurrentDate();
-  if (t1 == t2) return before->GetInterpolatedValue(lon, lat);
+  if (t1 == t2) return before->GetInterpolatedValue(lon, lat, lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing());
 
-  double v1 = before->GetInterpolatedValue(lon, lat);
-  double v2 = after->GetInterpolatedValue(lon, lat);
+  double v1 = before->GetInterpolatedValue(lon, lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing());
+  double v2 = after->GetInterpolatedValue(lon, lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing());
   if (v1 != GRIB_NOTDEF && v2 != GRIB_NOTDEF) {
     double k = fabs((double)(t - t1) / (t2 - t1));
+
+    if (g_pi->GetTemporalInterpolation() == GribRecord::NEAREST)
+      return (k < 0.5) ? v1 : v2;
+
+    if (g_pi->GetTemporalSmoothing() == GribRecord::PSEUDO_HERMITE)
+      k = (3.0 - 2.0 * k) * k * k; // pseudo hermite interpolation
+
     return (1.0 - k) * v1 + k * v2;
   }
 
@@ -1611,7 +1637,7 @@ bool GRIBUICtrlBar::getTimeInterpolatedValues(double &M, double &A, int idx1,
 
     time_t curtime = GX->GetRecordCurrentDate();
     if (curtime == t) {
-      return GribRecord::GetInterpolatedValues(M, A, GX, GY, lon, lat, true);
+      return GribRecord::GetInterpolatedValues(M, A, GX, GY, lon, lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing());
     }
     if (curtime < t) {
       beforeX = GX;
@@ -1630,24 +1656,54 @@ bool GRIBUICtrlBar::getTimeInterpolatedValues(double &M, double &A, int idx1,
   time_t t2 = afterX->GetRecordCurrentDate();
   if (t1 == t2) {
     return GribRecord::GetInterpolatedValues(M, A, beforeX, beforeY, lon, lat,
-                                             true);
+                                             g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing());
   }
-  double v1m, v2m, v1a, v2a;
-  if (!GribRecord::GetInterpolatedValues(v1m, v1a, beforeX, beforeY, lon, lat,
-                                         true))
-    return false;
-
-  if (!GribRecord::GetInterpolatedValues(v2m, v2a, afterX, afterY, lon, lat,
-                                         true))
-    return false;
-
-  if (v1m == GRIB_NOTDEF || v2m == GRIB_NOTDEF || v1a == GRIB_NOTDEF ||
-      v2a == GRIB_NOTDEF)
-    return false;
 
   double k = fabs((double)(t - t1) / (t2 - t1));
-  M = (1.0 - k) * v1m + k * v2m;
-  A = (1.0 - k) * v1a + k * v2a;
+
+  if (g_pi->GetTemporalInterpolation() == GribRecord::NEAREST)
+    return (k < 0.5)
+      ? GribRecord::getInterpolatedValues(M, A, beforeX, beforeY, lon, lat,g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing())
+      : GribRecord::getInterpolatedValues(M, A, afterX, afterY, lon, lat,g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing());
+
+  if (g_pi->GetTemporalSmoothing() == GribRecord::PSEUDO_HERMITE)
+    k = (3.0 - 2.0 * k) * k * k; // pseudo hermite interpolation
+
+  if (g_pi->GetTemporalInterpolation() == GribRecord::VECTOR) {
+    double v1m, v2m, v1a, v2a;
+    if (!GribRecord::getInterpolatedValues(v1m, v1a, beforeX, beforeY, lon, lat,g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing()))
+      return false;
+
+    if (!GribRecord::getInterpolatedValues(v2m, v2a, afterX, afterY, lon, lat,g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing()))
+      return false;
+
+    if (v1m == GRIB_NOTDEF || v2m == GRIB_NOTDEF || v1a == GRIB_NOTDEF ||
+        v2a == GRIB_NOTDEF)
+      return false;
+
+    M = (1.0 - k) * v1m + k * v2m;
+    A = (1.0 - k) * v1a + k * v2a;
+    return true;
+  }
+
+  // GribRecord::SCALAR
+  double v1x = beforeX->getInterpolatedValue(lon, lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing(), false);
+  double v2x = afterX->getInterpolatedValue(lon, lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing(), false);
+  double v1y = beforeY->getInterpolatedValue(lon, lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing(), false);
+  double v2y = afterY->getInterpolatedValue(lon, lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing(), false);
+
+  if (v1x == GRIB_NOTDEF || v2x == GRIB_NOTDEF || v1y == GRIB_NOTDEF ||
+        v2y == GRIB_NOTDEF)
+      return false;
+
+  double vx = (1.0 - k) * v1x + k * v2x;
+  double vy = (1.0 - k) * v1y + k * v2y;
+
+  M = sqrt(vx * vx + vy * vy);
+  A = atan2(vx, vy);
+  A *= 180 / M_PI;  // degrees
+  A += 180;
+
   return true;
 }
 
