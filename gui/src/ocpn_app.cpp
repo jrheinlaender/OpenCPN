@@ -761,6 +761,20 @@ WallpaperFrame *g_wallpaper;
 bool MyApp::OnInit() {
   if (!wxApp::OnInit()) return false;
 
+  /**
+   * Reduce system load from event processing
+   *
+   * Turn off wxEVT_UPDATE_UI that is sent to every window by default
+   * For specific windows, it can be turned back on by setting the extra
+   * style wxWS_EX_PROCESS_UI_UPDATES
+   *
+   * Turn off wxEVT_IDLE that is sent to all active and inactive windows
+   * For specific windows, it can be turned back on by setting the extra
+   * style wxWS_EX_PROCESS_IDLE
+   */
+  wxUpdateUIEvent::SetMode(wxUPDATE_UI_PROCESS_SPECIFIED);
+  wxIdleEvent::SetMode(wxIDLE_PROCESS_SPECIFIED);
+
 #ifdef __ANDROID__
   androidEnableBackButton(false);
   androidEnableOptionItems(false);
