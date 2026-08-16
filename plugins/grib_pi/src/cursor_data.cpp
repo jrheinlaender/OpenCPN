@@ -27,7 +27,7 @@
 extern int m_Altitude;
 extern int m_DialogStyle;
 
-extern grib_pi *g_pi;
+extern GribPi *g_pi;
 
 //---------------------------------------------------------------------------------------
 //               GRIB Cursor Data  implementation

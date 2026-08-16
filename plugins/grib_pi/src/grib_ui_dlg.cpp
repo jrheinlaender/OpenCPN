@@ -1594,10 +1594,14 @@ double GRIBUICtrlBar::getTimeInterpolatedValue(int idx, double lon, double lat,
 
   time_t t1 = before->GetRecordCurrentDate();
   time_t t2 = after->GetRecordCurrentDate();
-  if (t1 == t2) return before->GetInterpolatedValue(lon, lat, lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing());
+  if (t1 == t2)
+    return before->GetInterpolatedValue(
+        lon, lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing());
 
-  double v1 = before->GetInterpolatedValue(lon, lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing());
-  double v2 = after->GetInterpolatedValue(lon, lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing());
+  double v1 = before->GetInterpolatedValue(
+      lon, lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing());
+  double v2 = after->GetInterpolatedValue(
+      lon, lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing());
   if (v1 != GRIB_NOTDEF && v2 != GRIB_NOTDEF) {
     double k = fabs((double)(t - t1) / (t2 - t1));
 
@@ -1662,19 +1666,28 @@ bool GRIBUICtrlBar::getTimeInterpolatedValues(double &M, double &A, int idx1,
   double k = fabs((double)(t - t1) / (t2 - t1));
 
   if (g_pi->GetTemporalInterpolation() == GribRecord::NEAREST)
-    return (k < 0.5)
-      ? GribRecord::getInterpolatedValues(M, A, beforeX, beforeY, lon, lat,g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing())
-      : GribRecord::getInterpolatedValues(M, A, afterX, afterY, lon, lat,g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing());
+    return (k < 0.5) ? GribRecord::GetInterpolatedValues(
+                           M, A, beforeX, beforeY, lon, lat,
+                           g_pi->GetSpatialInterpolation(),
+                           g_pi->GetSpatialSmoothing())
+                     : GribRecord::GetInterpolatedValues(
+                           M, A, afterX, afterY, lon, lat,
+                           g_pi->GetSpatialInterpolation(),
+                           g_pi->GetSpatialSmoothing());
 
   if (g_pi->GetTemporalSmoothing() == GribRecord::PSEUDO_HERMITE)
-    k = (3.0 - 2.0 * k) * k * k; // pseudo hermite interpolation
+    k = (3.0 - 2.0 * k) * k * k;  // pseudo hermite interpolation
 
   if (g_pi->GetTemporalInterpolation() == GribRecord::VECTOR) {
     double v1m, v2m, v1a, v2a;
-    if (!GribRecord::getInterpolatedValues(v1m, v1a, beforeX, beforeY, lon, lat,g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing()))
+    if (!GribRecord::GetInterpolatedValues(v1m, v1a, beforeX, beforeY, lon, lat,
+                                           g_pi->GetSpatialInterpolation(),
+                                           g_pi->GetSpatialSmoothing()))
       return false;
 
-    if (!GribRecord::getInterpolatedValues(v2m, v2a, afterX, afterY, lon, lat,g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing()))
+    if (!GribRecord::GetInterpolatedValues(v2m, v2a, afterX, afterY, lon, lat,
+                                           g_pi->GetSpatialInterpolation(),
+                                           g_pi->GetSpatialSmoothing()))
       return false;
 
     if (v1m == GRIB_NOTDEF || v2m == GRIB_NOTDEF || v1a == GRIB_NOTDEF ||
@@ -1687,14 +1700,22 @@ bool GRIBUICtrlBar::getTimeInterpolatedValues(double &M, double &A, int idx1,
   }
 
   // GribRecord::SCALAR
-  double v1x = beforeX->getInterpolatedValue(lon, lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing(), false);
-  double v2x = afterX->getInterpolatedValue(lon, lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing(), false);
-  double v1y = beforeY->getInterpolatedValue(lon, lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing(), false);
-  double v2y = afterY->getInterpolatedValue(lon, lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing(), false);
+  double v1x =
+      beforeX->GetInterpolatedValue(lon, lat, g_pi->GetSpatialInterpolation(),
+                                    g_pi->GetSpatialSmoothing(), false);
+  double v2x =
+      afterX->GetInterpolatedValue(lon, lat, g_pi->GetSpatialInterpolation(),
+                                   g_pi->GetSpatialSmoothing(), false);
+  double v1y =
+      beforeY->GetInterpolatedValue(lon, lat, g_pi->GetSpatialInterpolation(),
+                                    g_pi->GetSpatialSmoothing(), false);
+  double v2y =
+      afterY->GetInterpolatedValue(lon, lat, g_pi->GetSpatialInterpolation(),
+                                   g_pi->GetSpatialSmoothing(), false);
 
   if (v1x == GRIB_NOTDEF || v2x == GRIB_NOTDEF || v1y == GRIB_NOTDEF ||
-        v2y == GRIB_NOTDEF)
-      return false;
+      v2y == GRIB_NOTDEF)
+    return false;
 
   double vx = (1.0 - k) * v1x + k * v2x;
   double vy = (1.0 - k) * v1y + k * v2y;

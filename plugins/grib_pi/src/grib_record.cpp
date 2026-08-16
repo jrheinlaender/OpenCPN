@@ -746,10 +746,10 @@ bool GribRecord::GetInterpolatedValues(double &M, double &A,
   }
 
   if (nbval == 4) {
-    double x00x = GRX->getValue(i0, j0), x00y = GRY->getValue(i0, j0);
-    double x01x = GRX->getValue(i0, j1), x01y = GRY->getValue(i0, j1);
-    double x10x = GRX->getValue(i1, j0), x10y = GRY->getValue(i1, j0);
-    double x11x = GRX->getValue(i1, j1), x11y = GRY->getValue(i1, j1);
+    double x00x = GRX->GetValue(i0, j0), x00y = GRY->GetValue(i0, j0);
+    double x01x = GRX->GetValue(i0, j1), x01y = GRY->GetValue(i0, j1);
+    double x10x = GRX->GetValue(i1, j0), x10y = GRY->GetValue(i1, j0);
+    double x11x = GRX->GetValue(i1, j1), x11y = GRY->GetValue(i1, j1);
 
     if (im == GribRecord::VECTOR) {
       double x00m = sqrt(x00x * x00x + x00y * x00y), x00a = atan2(x00x, x00y);
@@ -758,10 +758,10 @@ bool GribRecord::GetInterpolatedValues(double &M, double &A,
       double x11m = sqrt(x11x * x11x + x11y * x11y), x11a = atan2(x11x, x11y);
 
       double x0m = (1 - dx) * x00m + dx * x10m,
-            x0a = interp_angle(x00a, x10a, dx, M_PI);
+             x0a = interp_angle(x00a, x10a, dx, M_PI);
 
       double x1m = (1 - dx) * x01m + dx * x11m,
-            x1a = interp_angle(x01a, x11a, dx, M_PI);
+             x1a = interp_angle(x01a, x11a, dx, M_PI);
 
       M = (1 - dy) * x0m + dy * x1m;
       A = interp_angle(x0a, x1a, dy, M_PI);
