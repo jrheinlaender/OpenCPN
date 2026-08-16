@@ -39,7 +39,7 @@
 
 extern double m_cursor_lat, m_cursor_lon;
 
-extern grib_pi *g_pi;
+extern GribPi *g_pi;
 
 GRIBTable::GRIBTable(GRIBUICtrlBar &parent)
     : GRIBTableBase(&parent), m_pGDialog(&parent) {}
