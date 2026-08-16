@@ -41,8 +41,9 @@
 
 #include "grib_ui_dlg.h"
 #include "grib_overlay_factory.h"
+#include "grib_pi.h"
 
-extern grib_pi *g_pi;
+extern GribPi *g_pi;
 
 extern int m_Altitude;
 extern bool g_bpause;
@@ -1863,7 +1864,7 @@ void GRIBOverlayFactory::RenderGribOverlayMap(int settings, GribRecord **pGR,
     }
   }
 
-  delete pGRM;
+  delete pGRM;  // Note: It is legal to delete a nullptr
 }
 
 void GRIBOverlayFactory::RenderGribNumbers(int settings, GribRecord **pGR,
