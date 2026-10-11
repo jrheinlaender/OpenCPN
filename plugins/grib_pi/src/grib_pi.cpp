@@ -252,12 +252,18 @@ void GribPi::ShowPreferencesDialog(wxWindow *parent) {
   Pref->m_cbCopyMissingWaveRecord->SetValue(m_bCopyMissWaveRec);
   Pref->m_rbLoadOptions->SetSelection(m_bLoadLastOpenFile);
   Pref->m_rbStartOptions->SetSelection(m_bStartOptions);
-  Pref->m_pRbSpatialInterpolation->SetSelection(m_spatialInterpolation == GribRecord::NEAREST ? 0 : 1);
-  Pref->m_pRbSpatialWindcurrent->SetSelection(m_spatialInterpolation == GribRecord::SCALAR ? 0 : 1);
-  Pref->m_pRbSpatialSmoothing->SetSelection(m_spatialSmoothing == GribRecord::NO_SMOOTHING ? 0 : 1);
-  Pref->m_pRbTemporalInterpolation->SetSelection(m_temporalInterpolation == GribRecord::NEAREST ? 0 : 1);
-  Pref->m_pRbTemporalWindcurrent->SetSelection(m_temporalInterpolation == GribRecord::SCALAR ? 0 : 1);
-  Pref->m_pRbTemporalSmoothing->SetSelection(m_temporalSmoothing == GribRecord::NO_SMOOTHING ? 0 : 1);
+  Pref->m_pRbSpatialInterpolation->SetSelection(
+      m_spatialInterpolation == GribRecord::NEAREST ? 0 : 1);
+  Pref->m_pRbSpatialWindcurrent->SetSelection(
+      m_spatialInterpolation == GribRecord::SCALAR ? 0 : 1);
+  Pref->m_pRbSpatialSmoothing->SetSelection(
+      m_spatialSmoothing == GribRecord::NO_SMOOTHING ? 0 : 1);
+  Pref->m_pRbTemporalInterpolation->SetSelection(
+      m_temporalInterpolation == GribRecord::NEAREST ? 0 : 1);
+  Pref->m_pRbTemporalWindcurrent->SetSelection(
+      m_temporalInterpolation == GribRecord::SCALAR ? 0 : 1);
+  Pref->m_pRbTemporalSmoothing->SetSelection(
+      m_temporalSmoothing == GribRecord::NO_SMOOTHING ? 0 : 1);
 
   if (Pref->m_textDirectory) {  // not present on Android
     wxFileConfig *pConf = GetOCPNConfigObject();
@@ -316,13 +322,22 @@ void GribPi::UpdatePrefs(GribPreferencesDialog *Pref) {
   if (Pref->m_pRbSpatialInterpolation->GetSelection() == 0)
     m_spatialInterpolation = GribRecord::NEAREST;
   else
-    m_spatialInterpolation = (Pref->m_pRbSpatialWindcurrent->GetSelection() == 0 ? GribRecord::SCALAR : GribRecord::VECTOR);
-  m_spatialSmoothing = (Pref->m_pRbSpatialSmoothing->GetSelection() == 0 ? GribRecord::NO_SMOOTHING : GribRecord::PSEUDO_HERMITE);
+    m_spatialInterpolation = (Pref->m_pRbSpatialWindcurrent->GetSelection() == 0
+                                  ? GribRecord::SCALAR
+                                  : GribRecord::VECTOR);
+  m_spatialSmoothing = (Pref->m_pRbSpatialSmoothing->GetSelection() == 0
+                            ? GribRecord::NO_SMOOTHING
+                            : GribRecord::PSEUDO_HERMITE);
   if (Pref->m_pRbTemporalInterpolation->GetSelection() == 0)
     m_temporalInterpolation = GribRecord::NEAREST;
   else
-    m_temporalInterpolation = (Pref->m_pRbTemporalWindcurrent->GetSelection() == 0 ? GribRecord::SCALAR : GribRecord::VECTOR);
-  m_temporalSmoothing = (Pref->m_pRbTemporalSmoothing->GetSelection() == 0 ? GribRecord::NO_SMOOTHING : GribRecord::PSEUDO_HERMITE);
+    m_temporalInterpolation =
+        (Pref->m_pRbTemporalWindcurrent->GetSelection() == 0
+             ? GribRecord::SCALAR
+             : GribRecord::VECTOR);
+  m_temporalSmoothing = (Pref->m_pRbTemporalSmoothing->GetSelection() == 0
+                             ? GribRecord::NO_SMOOTHING
+                             : GribRecord::PSEUDO_HERMITE);
 #ifdef __WXMSW__
   double val = Pref->m_sIconSizeFactor->GetValue();
   m_GribIconsScaleFactor = 1. + (val / 10);
@@ -802,11 +817,14 @@ bool GribPi::LoadConfig() {
   pConf->Read("ShowGRIBIcon", &m_bGRIBShowIcon, true);
   pConf->Read("CopyFirstCumulativeRecord", &m_bCopyFirstCumRec, true);
   pConf->Read("CopyMissingWaveRecord", &m_bCopyMissWaveRec, true);
-  // For the default values here, see GribUIDialogBase.cpp in the anonymous namespace
-  pConf->Read("SpatialInterpolationMethod", (int*)(&m_spatialInterpolation), 2);
-  pConf->Read("SpatialSmoothingMethod", (int*)(&m_spatialSmoothing), 1);
-  pConf->Read("TemporalInterpolationMethod", (int*)(&m_temporalInterpolation), 2);
-  pConf->Read("TemporalSmoothingMethod", (int*)(&m_temporalSmoothing), 0);
+  // For the default values here, see grib_ui_dl_base.cpp in the anonymous
+  // namespace
+  pConf->Read("SpatialInterpolationMethod", (int *)(&m_spatialInterpolation),
+              2);
+  pConf->Read("SpatialSmoothingMethod", (int *)(&m_spatialSmoothing), 1);
+  pConf->Read("TemporalInterpolationMethod", (int *)(&m_temporalInterpolation),
+              2);
+  pConf->Read("TemporalSmoothingMethod", (int *)(&m_temporalSmoothing), 0);
 #ifdef __WXMSW__
   pConf->Read("GribIconsScaleFactor", &m_GribIconsScaleFactor, 1);
 #endif
@@ -841,10 +859,14 @@ bool GribPi::SaveConfig(void) {
   pConf->Write("CopyMissingWaveRecord", m_bCopyMissWaveRec);
   pConf->Write("DrawBarbedArrowHead", m_bDrawBarbedArrowHead);
   pConf->Write("ZoomToCenterAtInit", m_bZoomToCenterAtInit);
-  pConf->Write("SpatialInterpolationMethod", static_cast<unsigned>(m_spatialInterpolation));
-  pConf->Write("SpatialSmoothingMethod", static_cast<unsigned>(m_spatialSmoothing));
-  pConf->Write("TemporalInterpolationMethod", static_cast<unsigned>(m_temporalInterpolation));
-  pConf->Write("TemporalSmoothingMethod", static_cast<unsigned>(m_temporalSmoothing));
+  pConf->Write("SpatialInterpolationMethod",
+               static_cast<unsigned>(m_spatialInterpolation));
+  pConf->Write("SpatialSmoothingMethod",
+               static_cast<unsigned>(m_spatialSmoothing));
+  pConf->Write("TemporalInterpolationMethod",
+               static_cast<unsigned>(m_temporalInterpolation));
+  pConf->Write("TemporalSmoothingMethod",
+               static_cast<unsigned>(m_temporalSmoothing));
 #ifdef __WXMSW__
   pConf->Write("GribIconsScaleFactor", m_GribIconsScaleFactor);
 #endif

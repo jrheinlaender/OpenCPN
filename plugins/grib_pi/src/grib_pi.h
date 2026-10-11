@@ -160,10 +160,18 @@ public:
   [[nodiscard]] bool GetCopyMissWaveRec() const { return m_bCopyMissWaveRec; }
 
   /// Return interpolation and smoothing settings from user preferences
-  GribRecord::InterpolationMethod GetSpatialInterpolation() const { return m_spatialInterpolation; }
-  GribRecord::SmoothingMethod GetSpatialSmoothing() const { return m_spatialSmoothing; }
-  GribRecord::InterpolationMethod GetTemporalInterpolation() const { return m_temporalInterpolation; }
-  GribRecord::SmoothingMethod GetTemporalSmoothing() const { return m_temporalSmoothing; }
+  GribRecord::InterpolationMethod GetSpatialInterpolation() const {
+    return m_spatialInterpolation;
+  }
+  GribRecord::SmoothingMethod GetSpatialSmoothing() const {
+    return m_spatialSmoothing;
+  }
+  GribRecord::InterpolationMethod GetTemporalInterpolation() const {
+    return m_temporalInterpolation;
+  }
+  GribRecord::SmoothingMethod GetTemporalSmoothing() const {
+    return m_temporalSmoothing;
+  }
 
   GRIBOverlayFactory *m_pGRIBOverlayFactory;
   [[nodiscard]] GRIBOverlayFactory *GetGRIBOverlayFactory() const {

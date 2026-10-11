@@ -522,14 +522,17 @@ std::vector<GribRecord *> *GribReader::getListOfGribRecords(int dataType,
     return nullptr;
 }
 //---------------------------------------------------------------------------
-double GribReader::GetTimeInterpolatedValue(int dataType, int levelType,
-                                            int levelValue, double px,
-                                            double py, time_t date,
-                                            const GribRecord::InterpolationMethod spatial_im, const GribRecord::SmoothingMethod spatial_sm,
-                                            const GribRecord::InterpolationMethod temporal_im, const GribRecord::SmoothingMethod temporal_sm) {
+double GribReader::GetTimeInterpolatedValue(
+    int dataType, int levelType, int levelValue, double px, double py,
+    time_t date, const GribRecord::InterpolationMethod spatial_im,
+    const GribRecord::SmoothingMethod spatial_sm,
+    const GribRecord::InterpolationMethod temporal_im,
+    const GribRecord::SmoothingMethod temporal_sm) {
   GribRecord *before, *after;
   FindGribsAroundDate(dataType, levelType, levelValue, date, &before, &after);
-  return Get2GribsInterpolatedValueByDate(px, py, date, before, after, spatial_im, spatial_sm, temporal_im, temporal_sm);
+  return Get2GribsInterpolatedValueByDate(px, py, date, before, after,
+                                          spatial_im, spatial_sm, temporal_im,
+                                          temporal_sm);
 }
 
 //------------------------------------------------------------------
@@ -556,12 +559,12 @@ void GribReader::FindGribsAroundDate(int dataType, int levelType,
 }
 
 //------------------------------------------------------------------
-double GribReader::Get2GribsInterpolatedValueByDate(double px, double py,
-                                                    time_t date,
-                                                    GribRecord *before,
-                                                    GribRecord *after,
-                                                    const GribRecord::InterpolationMethod spatial_im, const GribRecord::SmoothingMethod spatial_sm,
-                                                    const GribRecord::InterpolationMethod temporal_im, const GribRecord::SmoothingMethod temporal_sm) {
+double GribReader::Get2GribsInterpolatedValueByDate(
+    double px, double py, time_t date, GribRecord *before, GribRecord *after,
+    const GribRecord::InterpolationMethod spatial_im,
+    const GribRecord::SmoothingMethod spatial_sm,
+    const GribRecord::InterpolationMethod temporal_im,
+    const GribRecord::SmoothingMethod temporal_sm) {
   double val = GRIB_NOTDEF;
   if (before != nullptr && after != nullptr) {
     if (before == after) {
@@ -572,7 +575,8 @@ double GribReader::Get2GribsInterpolatedValueByDate(double px, double py,
       if (t1 == t2) {
         val = before->GetInterpolatedValue(px, py, spatial_im, spatial_sm);
       } else {
-        double v1 = before->GetInterpolatedValue(px, py, spatial_im, spatial_sm);
+        double v1 =
+            before->GetInterpolatedValue(px, py, spatial_im, spatial_sm);
         double v2 = after->GetInterpolatedValue(px, py, spatial_im, spatial_sm);
         if (v1 != GRIB_NOTDEF && v2 != GRIB_NOTDEF) {
           if (temporal_im == GribRecord::NEAREST)
@@ -580,7 +584,7 @@ double GribReader::Get2GribsInterpolatedValueByDate(double px, double py,
 
           double k = fabs((double)(date - t1) / (t2 - t1));
           if (temporal_sm == GribRecord::PSEUDO_HERMITE)
-            k = (3.0 - 2.0*k) * k * k;
+            k = (3.0 - 2.0 * k) * k * k;
           val = (1.0 - k) * v1 + k * v2;
         }
       }
@@ -666,14 +670,17 @@ double GribReader::ComputeDewPoint(double lon, double lat, time_t now) {
   GribRecord *recTempDiew = GetGribRecord(GRB_DEWPOINT, LV_ABOV_GND, 2, now);
   if (recTempDiew != nullptr) {
     // GRIB file contains diew point data
-    diewpoint = recTempDiew->GetInterpolatedValue(lon, lat, GribRecord::VECTOR, GribRecord::PSEUDO_HERMITE);
+    diewpoint = recTempDiew->GetInterpolatedValue(lon, lat, GribRecord::VECTOR,
+                                                  GribRecord::PSEUDO_HERMITE);
   } else {
     // Compute diew point with Magnus-Tetens formula
     GribRecord *recTemp = GetGribRecord(GRB_TEMP, LV_ABOV_GND, 2, now);
     GribRecord *recHumid = GetGribRecord(GRB_HUMID_REL, LV_ABOV_GND, 2, now);
     if (recTemp && recHumid) {
-      double temp = recTemp->GetInterpolatedValue(lon, lat, GribRecord::VECTOR, GribRecord::PSEUDO_HERMITE);
-      double humid = recHumid->GetInterpolatedValue(lon, lat, GribRecord::VECTOR, GribRecord::PSEUDO_HERMITE);
+      double temp = recTemp->GetInterpolatedValue(lon, lat, GribRecord::VECTOR,
+                                                  GribRecord::PSEUDO_HERMITE);
+      double humid = recHumid->GetInterpolatedValue(
+          lon, lat, GribRecord::VECTOR, GribRecord::PSEUDO_HERMITE);
       if (temp != GRIB_NOTDEF && humid != GRIB_NOTDEF) {
         double a = 17.27;
         double b = 237.7;

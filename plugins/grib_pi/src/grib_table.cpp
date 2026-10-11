@@ -366,7 +366,8 @@ wxString GRIBTable::GetWind(GribRecord **recordarray, int datatype,
   wdir = GRIB_NOTDEF;
   if (GribRecord::GetInterpolatedValues(
           vkn, ang, recordarray[Idx_WIND_VX + altitude],
-          recordarray[Idx_WIND_VY + altitude], m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing())) {
+          recordarray[Idx_WIND_VY + altitude], m_cursor_lon, m_cursor_lat,
+          g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing())) {
     if (datatype == 1) {
       wdir = ang;
       return skn;
@@ -395,7 +396,8 @@ wxString GRIBTable::GetWindGust(GribRecord **recordarray, int datatype) {
   wxString skn(wxEmptyString);
   if (recordarray[Idx_WIND_GUST]) {
     double vkn = recordarray[Idx_WIND_GUST]->GetInterpolatedValue(
-        m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing());
+        m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(),
+        g_pi->GetSpatialSmoothing());
     if (vkn != GRIB_NOTDEF) {
       double cvkn = m_pGDialog->m_OverlaySettings.CalibrateValue(
           GribOverlaySettings::WIND_GUST, vkn);
@@ -423,7 +425,8 @@ wxString GRIBTable::GetPressure(GribRecord **recordarray) {
   wxString skn(wxEmptyString);
   if (recordarray[Idx_PRESSURE]) {
     double press = recordarray[Idx_PRESSURE]->GetInterpolatedValue(
-        m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing());
+        m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(),
+        g_pi->GetSpatialSmoothing());
 
     if (press != GRIB_NOTDEF) {
       press = m_pGDialog->m_OverlaySettings.CalibrateValue(
@@ -450,7 +453,8 @@ wxString GRIBTable::GetWaves(GribRecord **recordarray, int datatype,
     case Idx_HTSIGW:
       if (recordarray[Idx_HTSIGW]) {
         double height = recordarray[Idx_HTSIGW]->GetInterpolatedValue(
-            m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing());
+            m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(),
+            g_pi->GetSpatialSmoothing());
         if (height != GRIB_NOTDEF) {
           double cheight = m_pGDialog->m_OverlaySettings.CalibrateValue(
               GribOverlaySettings::WAVE, height);
@@ -467,7 +471,8 @@ wxString GRIBTable::GetWaves(GribRecord **recordarray, int datatype,
     case Idx_WVDIR:
       if (recordarray[Idx_WVDIR]) {
         double direction = recordarray[Idx_WVDIR]->GetInterpolatedValue(
-            m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing(), true);
+            m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(),
+            g_pi->GetSpatialSmoothing(), true);
         wdir = direction;
         return skn;
       }
@@ -475,7 +480,8 @@ wxString GRIBTable::GetWaves(GribRecord **recordarray, int datatype,
     case Idx_WVPER:
       if (recordarray[Idx_WVPER]) {
         double period = recordarray[Idx_WVPER]->GetInterpolatedValue(
-            m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing());
+            m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(),
+            g_pi->GetSpatialSmoothing());
         if (period != GRIB_NOTDEF)
           skn.Printf(wxString::Format("%01ds", (int)(period + 0.5)));
       }
@@ -487,7 +493,8 @@ wxString GRIBTable::GetRainfall(GribRecord **recordarray) {
   wxString skn(wxEmptyString);
   if (recordarray[Idx_PRECIP_TOT]) {
     double precip = recordarray[Idx_PRECIP_TOT]->GetInterpolatedValue(
-        m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing());
+        m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(),
+        g_pi->GetSpatialSmoothing());
 
     if (precip != GRIB_NOTDEF) {
       precip = m_pGDialog->m_OverlaySettings.CalibrateValue(
@@ -507,7 +514,8 @@ wxString GRIBTable::GetCloudCover(GribRecord **recordarray) {
   wxString skn(wxEmptyString);
   if (recordarray[Idx_CLOUD_TOT]) {
     double cloud = recordarray[Idx_CLOUD_TOT]->GetInterpolatedValue(
-        m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing());
+        m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(),
+        g_pi->GetSpatialSmoothing());
 
     if (cloud != GRIB_NOTDEF) {
       cloud = m_pGDialog->m_OverlaySettings.CalibrateValue(
@@ -527,7 +535,8 @@ wxString GRIBTable::GetAirTemp(GribRecord **recordarray) {
   wxString skn(wxEmptyString);
   if (recordarray[Idx_AIR_TEMP]) {
     double temp = recordarray[Idx_AIR_TEMP]->GetInterpolatedValue(
-        m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing());
+        m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(),
+        g_pi->GetSpatialSmoothing());
 
     if (temp != GRIB_NOTDEF) {
       temp = m_pGDialog->m_OverlaySettings.CalibrateValue(
@@ -547,7 +556,8 @@ wxString GRIBTable::GetSeaTemp(GribRecord **recordarray) {
   wxString skn(wxEmptyString);
   if (recordarray[Idx_SEA_TEMP]) {
     double temp = recordarray[Idx_SEA_TEMP]->GetInterpolatedValue(
-        m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing());
+        m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(),
+        g_pi->GetSpatialSmoothing());
 
     if (temp != GRIB_NOTDEF) {
       temp = m_pGDialog->m_OverlaySettings.CalibrateValue(
@@ -567,7 +577,8 @@ wxString GRIBTable::GetCAPE(GribRecord **recordarray) {
   wxString skn(wxEmptyString);
   if (recordarray[Idx_CAPE]) {
     double cape = recordarray[Idx_CAPE]->GetInterpolatedValue(
-        m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing());
+        m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(),
+        g_pi->GetSpatialSmoothing());
 
     if (cape != GRIB_NOTDEF) {
       cape = m_pGDialog->m_OverlaySettings.CalibrateValue(
@@ -588,7 +599,8 @@ wxString GRIBTable::GetCompRefl(GribRecord **recordarray) {
   wxString skn(wxEmptyString);
   if (recordarray[Idx_COMP_REFL]) {
     double refl = recordarray[Idx_COMP_REFL]->GetInterpolatedValue(
-        m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing());
+        m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(),
+        g_pi->GetSpatialSmoothing());
 
     if (refl != GRIB_NOTDEF) {
       refl = m_pGDialog->m_OverlaySettings.CalibrateValue(
@@ -612,7 +624,8 @@ wxString GRIBTable::GetCurrent(GribRecord **recordarray, int datatype,
   wdir = GRIB_NOTDEF;
   if (GribRecord::GetInterpolatedValues(
           vkn, ang, recordarray[Idx_SEACURRENT_VX],
-          recordarray[Idx_SEACURRENT_VY], m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing())) {
+          recordarray[Idx_SEACURRENT_VY], m_cursor_lon, m_cursor_lat,
+          g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing())) {
     if (datatype == 1) {
       wdir = ang;
       return skn;

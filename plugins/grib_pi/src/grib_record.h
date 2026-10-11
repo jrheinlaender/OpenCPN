@@ -585,8 +585,8 @@ public:
    * conventions where u is positive eastward and v is positive northward
    */
   static bool GetInterpolatedValues(
-      double &M, double &A, const GribRecord *GRX,
-      const GribRecord *GRY, double px, double py,
+      double &M, double &A, const GribRecord *GRX, const GribRecord *GRY,
+      double px, double py,
       const InterpolationMethod im,  // Default was InterpolationMethod::VECTOR,
       const SmoothingMethod sm);  // Default was SmoothingMethod::PSEUDO_HERMITE
 

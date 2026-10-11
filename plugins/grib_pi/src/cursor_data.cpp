@@ -359,7 +359,8 @@ void CursorData::UpdateTrackingControls() {
   double vkn, ang;
   if (GribRecord::GetInterpolatedValues(
           vkn, ang, RecordArray[Idx_WIND_VX + m_Altitude],
-          RecordArray[Idx_WIND_VY + m_Altitude], m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing())) {
+          RecordArray[Idx_WIND_VY + m_Altitude], m_cursor_lon, m_cursor_lat,
+          g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing())) {
     double vk = m_gparent.m_OverlaySettings.CalibrateValue(
         GribOverlaySettings::WIND, vkn);
 
@@ -390,7 +391,8 @@ void CursorData::UpdateTrackingControls() {
   //    Update the Wind gusts control
   if (RecordArray[Idx_WIND_GUST]) {
     double vkn_ = RecordArray[Idx_WIND_GUST]->GetInterpolatedValue(
-        m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing());
+        m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(),
+        g_pi->GetSpatialSmoothing());
 
     if (vkn_ != GRIB_NOTDEF) {
       vkn_ = m_gparent.m_OverlaySettings.CalibrateValue(
@@ -406,7 +408,8 @@ void CursorData::UpdateTrackingControls() {
   //    Update the Pressure control
   if (RecordArray[Idx_PRESSURE]) {
     double press = RecordArray[Idx_PRESSURE]->GetInterpolatedValue(
-        m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing());
+        m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(),
+        g_pi->GetSpatialSmoothing());
 
     if (press != GRIB_NOTDEF) {
       press = m_gparent.m_OverlaySettings.CalibrateValue(
@@ -427,7 +430,8 @@ void CursorData::UpdateTrackingControls() {
   //    Update the Sig Wave Height
   if (RecordArray[Idx_HTSIGW]) {
     double height = RecordArray[Idx_HTSIGW]->GetInterpolatedValue(
-        m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing());
+        m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(),
+        g_pi->GetSpatialSmoothing());
 
     if (height != GRIB_NOTDEF) {
       height = m_gparent.m_OverlaySettings.CalibrateValue(
@@ -438,7 +442,8 @@ void CursorData::UpdateTrackingControls() {
                            height));
       if (RecordArray[Idx_WVPER]) {
         double period = RecordArray[Idx_WVPER]->GetInterpolatedValue(
-            m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing());
+            m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(),
+            g_pi->GetSpatialSmoothing());
         if (period != GRIB_NOTDEF) {
           if (m_DialogStyle == SEPARATED_VERTICAL)
             m_tcWavePeriode->SetValue(
@@ -458,7 +463,8 @@ void CursorData::UpdateTrackingControls() {
   // Update the Wave direction
   if (RecordArray[Idx_WVDIR]) {
     double direction = RecordArray[Idx_WVDIR]->GetInterpolatedValue(
-        m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing(), true);
+        m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(),
+        g_pi->GetSpatialSmoothing(), true);
     if (direction != GRIB_NOTDEF)
       m_tcWaveDirection->SetValue(
           wxString::Format("%03d%c", (int)direction, 0x00B0));
@@ -496,7 +502,8 @@ void CursorData::UpdateTrackingControls() {
   //    Update total rainfall control
   if (RecordArray[Idx_PRECIP_TOT]) {
     double precip = RecordArray[Idx_PRECIP_TOT]->GetInterpolatedValue(
-        m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing());
+        m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(),
+        g_pi->GetSpatialSmoothing());
 
     if (precip != GRIB_NOTDEF) {
       precip = m_gparent.m_OverlaySettings.CalibrateValue(
@@ -518,7 +525,8 @@ void CursorData::UpdateTrackingControls() {
   //    Update total cloud control
   if (RecordArray[Idx_CLOUD_TOT]) {
     double cloud = RecordArray[Idx_CLOUD_TOT]->GetInterpolatedValue(
-        m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing());
+        m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(),
+        g_pi->GetSpatialSmoothing());
 
     if (cloud != GRIB_NOTDEF) {
       cloud = m_gparent.m_OverlaySettings.CalibrateValue(
@@ -533,7 +541,8 @@ void CursorData::UpdateTrackingControls() {
   //    Update the Air Temperature
   if (RecordArray[Idx_AIR_TEMP]) {
     double temp = RecordArray[Idx_AIR_TEMP]->GetInterpolatedValue(
-        m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing());
+        m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(),
+        g_pi->GetSpatialSmoothing());
 
     if (temp != GRIB_NOTDEF) {
       temp = m_gparent.m_OverlaySettings.CalibrateValue(
@@ -549,7 +558,8 @@ void CursorData::UpdateTrackingControls() {
   //    Update the Sea Surface Temperature
   if (RecordArray[Idx_SEA_TEMP]) {
     double temp = RecordArray[Idx_SEA_TEMP]->GetInterpolatedValue(
-        m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing());
+        m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(),
+        g_pi->GetSpatialSmoothing());
 
     if (temp != GRIB_NOTDEF) {
       temp = m_gparent.m_OverlaySettings.CalibrateValue(
@@ -565,7 +575,8 @@ void CursorData::UpdateTrackingControls() {
   //    Update the Convective Available Potential Energy (CAPE)
   if (RecordArray[Idx_CAPE]) {
     double cape = RecordArray[Idx_CAPE]->GetInterpolatedValue(
-        m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing());
+        m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(),
+        g_pi->GetSpatialSmoothing());
 
     if (cape != GRIB_NOTDEF) {
       cape = m_gparent.m_OverlaySettings.CalibrateValue(
@@ -579,7 +590,8 @@ void CursorData::UpdateTrackingControls() {
   }
   if (RecordArray[Idx_COMP_REFL]) {
     double c_refl = RecordArray[Idx_COMP_REFL]->GetInterpolatedValue(
-        m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing());
+        m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(),
+        g_pi->GetSpatialSmoothing());
 
     if (c_refl != GRIB_NOTDEF) {
       c_refl = m_gparent.m_OverlaySettings.CalibrateValue(
@@ -595,7 +607,8 @@ void CursorData::UpdateTrackingControls() {
   // geopotential altitude
   if (RecordArray[Idx_GEOP_HGT + m_Altitude]) {
     double geop = RecordArray[Idx_GEOP_HGT + m_Altitude]->GetInterpolatedValue(
-        m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing());
+        m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(),
+        g_pi->GetSpatialSmoothing());
 
     if (geop != GRIB_NOTDEF) {
       geop = m_gparent.m_OverlaySettings.CalibrateValue(
@@ -610,7 +623,8 @@ void CursorData::UpdateTrackingControls() {
   // temperature
   if (RecordArray[Idx_AIR_TEMP + m_Altitude]) {
     double temp = RecordArray[Idx_AIR_TEMP + m_Altitude]->GetInterpolatedValue(
-        m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing());
+        m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(),
+        g_pi->GetSpatialSmoothing());
 
     if (temp != GRIB_NOTDEF) {
       temp = m_gparent.m_OverlaySettings.CalibrateValue(
@@ -624,7 +638,8 @@ void CursorData::UpdateTrackingControls() {
   // relative humidity
   if (RecordArray[Idx_HUMID_RE + m_Altitude]) {
     double humi = RecordArray[Idx_HUMID_RE + m_Altitude]->GetInterpolatedValue(
-        m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(), g_pi->GetSpatialSmoothing());
+        m_cursor_lon, m_cursor_lat, g_pi->GetSpatialInterpolation(),
+        g_pi->GetSpatialSmoothing());
 
     if (humi != GRIB_NOTDEF) {
       humi = m_gparent.m_OverlaySettings.CalibrateValue(
