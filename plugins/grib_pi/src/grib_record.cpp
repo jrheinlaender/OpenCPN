@@ -162,8 +162,7 @@ bool GribRecord::GetInterpolatedParameters(
 //-------------------------------------------------------------------------------
 GribRecord *GribRecord::InterpolatedRecord(const GribRecord &rec1,
                                            const GribRecord &rec2, double d,
-                                           const SmoothingMethod sm,
-                                           bool dir) {
+                                           const SmoothingMethod sm, bool dir) {
   double La1, Lo1, La2, Lo2, Di, Dj;
   int im1, jm1, im2, jm2;
   int Ni, Nj, rec1offi, rec1offj, rec2offi, rec2offj;
@@ -173,8 +172,7 @@ GribRecord *GribRecord::InterpolatedRecord(const GribRecord &rec1,
     return nullptr;
 
   // Apply smoothing method
-  if (sm == SmoothingMethod::PSEUDO_HERMITE)
-    d = (3.0 - 2.0 * d) * d * d;
+  if (sm == SmoothingMethod::PSEUDO_HERMITE) d = (3.0 - 2.0 * d) * d * d;
 
   // recopie les champs de bits
   int size = Ni * Nj;
@@ -234,10 +232,12 @@ GribRecord *GribRecord::InterpolatedRecord(const GribRecord &rec1,
 /* for interpolation for x and y records, we must do them together because
    otherwise we end up with a vector interpolation which is not what we want..
    instead we want to interpolate from the polar magnitude, and angles */
-GribRecord* GribRecord::Interpolated2DRecord(
-    GribRecord*& rety, const GribRecord& rec1x, const GribRecord& rec1y,
-    const GribRecord& rec2x, const GribRecord& rec2y, double d,
-    const SmoothingMethod sm) {
+GribRecord *GribRecord::Interpolated2DRecord(GribRecord *&rety,
+                                             const GribRecord &rec1x,
+                                             const GribRecord &rec1y,
+                                             const GribRecord &rec2x,
+                                             const GribRecord &rec2y, double d,
+                                             const SmoothingMethod sm) {
   double La1, Lo1, La2, Lo2, Di, Dj;
   int im1, jm1, im2, jm2;
   int Ni, Nj, rec1offi, rec1offj, rec2offi, rec2offj;
@@ -322,9 +322,9 @@ GribRecord* GribRecord::Interpolated2DRecord(
   return ret;
 }
 
-GribRecord* GribRecord::MagnitudeRecord(const GribRecord& rec1,
-                                        const GribRecord& rec2) {
-  GribRecord* rec = new GribRecord(rec1);
+GribRecord *GribRecord::MagnitudeRecord(const GribRecord &rec1,
+                                        const GribRecord &rec2) {
+  GribRecord *rec = new GribRecord(rec1);
 
   /* generate a record which is the combined magnitude of two records */
   if (rec1.data && rec2.data && rec1.Ni == rec2.Ni && rec1.Nj == rec2.Nj) {
@@ -665,8 +665,7 @@ double GribRecord::GetInterpolatedValue(double px, double py,
 bool GribRecord::GetInterpolatedValues(double &M, double &A,
                                        const GribRecord *GRX,
                                        const GribRecord *GRY, double px,
-                                       double py,
-                                       const InterpolationMethod im,
+                                       double py, const InterpolationMethod im,
                                        const SmoothingMethod sm) {
   if (!GRX || !GRY) return false;
 
