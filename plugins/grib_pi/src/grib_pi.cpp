@@ -785,8 +785,80 @@ void GribPi::SetPluginMessage(wxString &message_id, wxString &message_body) {
     wxString out;
     w.Write(v, out);
     SendPluginMessage(wxString("GRIB_TIMELINE_RECORD"), out);
+    /**
+     * Note: This means that the GribRecordSet passed in the message
+     * MUST be copied before the next one is requested
+     * That is dangerous since more than one Plugin might request gribs
+     */
     delete m_pLastTimelineSet;
     m_pLastTimelineSet = set;
+  } else if (message_id == "METEO_TIMELINE_RECORD_REQUEST") {
+    // TODO To avoid interpolating unused parameter sets, pass in
+    // a list of the required metereological parameters
+    wxJSONReader r;
+    wxJSONValue v;
+    r.Parse(message_body, &v);
+    wxDateTime time(time_t(v["Timestamp"].AsInt()));
+
+    if (!m_pGribCtrlBar) OnToolbarToolCallback(-1);
+
+    // Retrieve GRIB data, interpolated at the given time
+    GribTimelineRecordSet *set =
+        m_pGribCtrlBar ? m_pGribCtrlBar->GetTimeLineRecordSet(time) : nullptr;
+
+    /**
+     * Convert data into API generic format.
+     * We must make a copy. If ownership remains with grib_pi, then the
+     * data may be freed before the receiver of the message has finished with
+     * it. If ownership is given to the receiver, then it might be freed before
+     * grib_pi is finished with it.
+     */
+    HostApi123::MeteoRecordSet* p_meteo_set =
+      new HostApi123::MeteoRecordSet((GribRecordSet*)set);
+
+    char ptr[64];
+    snprintf(ptr, sizeof ptr, "%p", &p_meteo_set);
+
+    v["GribVersionMajor"] = PLUGIN_VERSION_MAJOR;
+    v["GribVersionMinor"] = PLUGIN_VERSION_MINOR;
+    v["MeteoRecordSetPtr"] = wxString::From8BitData(ptr);
+
+    wxJSONWriter w;
+    wxString out;
+    w.Write(v, out);
+    SendPluginMessage(wxString("METEO_TIMELINE_RECORD"), out);
+    // Do NOT delete p_meteo_set - data is transferred to recipient
+    delete m_pLastTimelineSet;
+    m_pLastTimelineSet = set;
+  }
+
+  else if (message_id == "APPLY_METEO_TIMELINE_RECORD") {
+    wxLogMessage("Got APPLY_METEO_TIMELINE_RECORD");
+
+    wxJSONReader r;
+    wxJSONValue v;
+    r.Parse(message_body, &v);
+
+    if (!m_pGribCtrlBar) OnToolbarToolCallback(-1);
+
+    wxString sptr = v["MeteoRecordSetPtr"].AsString();
+    wxCharBuffer bptr = sptr.To8BitData();
+    char* ptr = bptr.data();
+
+    HostApi123::MeteoRecordSet* gptr = nullptr;
+    if (sscanf(ptr, "%p", &gptr) != 1) gptr = nullptr;
+
+    std::string action(v["Action"].AsString());
+
+    if (m_pGribCtrlBar != nullptr) {
+      if (action == "Clear")
+        m_pGribCtrlBar->Clear();
+
+      m_pGribCtrlBar->AppendRecordSet(gptr->AsGribRecordSet());
+
+      if (action == "Finish")
+        m_pGribCtrlBar->Init();
+    }
   }
 
   else if (message_id == "GRIB_APPLY_JSON_CONFIG") {

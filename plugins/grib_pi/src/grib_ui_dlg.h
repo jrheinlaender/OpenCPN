@@ -188,6 +188,10 @@ public:
 
   void OpenFile(bool newestFile = false);
 
+
+  /// Append a recordset at the end of the timeline
+  void AppendRecordSet(GribRecordSet* p_record_set);
+
   void ContextMenuItemCallback(int id);
   void SetFactoryOptions();
 
@@ -452,7 +456,14 @@ public:
    */
   GRIBFile(const wxArrayString &file_names, bool CumRec, bool WaveRec,
            bool newestFile = false);
+
+  /// Create empty object, to be filled by AddRecordSet()
+  GRIBFile(const time_t reference_stamp);
+
   ~GRIBFile();
+
+  /// Append a record set at the end of the array
+  void AppendRecordSet(GribRecordSet* p_record);
 
   /**
    * Checks if file loading and parsing was successful.
