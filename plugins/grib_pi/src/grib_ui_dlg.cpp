@@ -597,6 +597,13 @@ void GRIBUICtrlBar::OpenFile(bool newestFile) {
   }
 }
 
+void GRIBUICtrlBar::AppendRecordSet(GribRecordSet* p_record_set) {
+  if (m_bGRIBActiveFile == nullptr)
+    m_bGRIBActiveFile = new GRIBFile(p_record_set->m_Reference_Time);
+
+  m_bGRIBActiveFile->AppendRecordSet(p_record_set);
+}
+
 bool GRIBUICtrlBar::GetGribZoneLimits(GribTimelineRecordSet *timelineSet,
                                       double *latmin, double *latmax,
                                       double *lonmin, double *lonmax) {
@@ -2479,6 +2486,29 @@ GRIBFile::GRIBFile(const wxArrayString &file_names, bool CumRec, bool WaveRec,
 }
 
 GRIBFile::~GRIBFile() { delete m_pGribReader; }
+GRIBFile::GRIBFile(const time_t reference_stamp) :
+    m_counter(++ID),
+    m_bOK(false),
+    m_pGribReader(nullptr),
+    m_pRefDateTime(reference_stamp),
+    m_GribRecordSetArray{},
+    m_nGribRecords(0)
+{
+}
+
+void GRIBFile::AppendRecordSet(GribRecordSet* p_record_set) {
+  if (p_record_set->m_Reference_Time < m_pRefDateTime)
+    return;
+
+  // m_FileNames must not be empty
+  if (m_nGribRecords == 0)
+    m_FileNames.Add("Internal");
+
+  m_GribRecordSetArray.Add(p_record_set);
+  m_pGribReader = nullptr;
+  m_bOK = true;
+  ++m_nGribRecords;
+}
 
 //---------------------------------------------------------------------------------------
 //               GRIB Cursor Data Ctrl & Display implementation
