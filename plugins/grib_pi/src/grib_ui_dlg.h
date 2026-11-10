@@ -188,6 +188,10 @@ public:
 
   void OpenFile(bool newestFile = false);
 
+  /// Remove all data to prepare for AppendRecordSet()
+  void Clear();
+  // Code moved out of constructor to reuse in grib_pi.cpp
+  void Init();
 
   /// Append a recordset at the end of the timeline
   void AppendRecordSet(GribRecordSet* p_record_set);
