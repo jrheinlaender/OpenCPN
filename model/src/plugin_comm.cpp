@@ -131,7 +131,9 @@ void SendMessageToAllPlugins(const std::string& message_id,
           case 118:
           case 119:
           case 120:
-          case 121: {
+          case 121:
+          case 122:
+          case 123: {
             auto* ppi = dynamic_cast<opencpn_plugin_18*>(pic->m_pplugin);
             if (ppi) ppi->SetPluginMessage(id, body);
             break;
@@ -222,7 +224,9 @@ void SendPositionFixToAllPlugIns(GenericPosDatEx* ppos) {
           case 118:
           case 119:
           case 120:
-          case 121: {
+          case 121:
+          case 122:
+          case 123: {
             auto* ppi = dynamic_cast<opencpn_plugin_18*>(pic->m_pplugin);
             if (ppi) ppi->SetPositionFixEx(pfix_ex);
             break;
@@ -262,7 +266,9 @@ void SendActiveLegInfoToAllPlugIns(const ActiveLegDat* leg_info) {
           case 118:
           case 119:
           case 120:
-          case 121: {
+          case 121:
+          case 122:
+          case 123: {
             auto* ppi = dynamic_cast<opencpn_plugin_117*>(pic->m_pplugin);
             if (ppi) ppi->SetActiveLegInfo(leg);
             break;
@@ -292,7 +298,9 @@ bool SendMouseEventToPlugins(wxMouseEvent& event) {
           case 118:
           case 119:
           case 120:
-          case 121: {
+          case 121:
+          case 122:
+          case 123: {
             auto* ppi = dynamic_cast<opencpn_plugin_112*>(pic->m_pplugin);
             if (ppi && ppi->MouseEventHook(event)) bret = true;
             break;
@@ -323,7 +331,9 @@ bool SendKeyEventToPlugins(wxKeyEvent& event) {
             case 118:
             case 119:
             case 120:
-            case 121: {
+            case 121:
+            case 122:
+            case 123: {
               auto* ppi = dynamic_cast<opencpn_plugin_113*>(pic->m_pplugin);
               if (ppi && ppi->KeyboardEventHook(event)) bret = true;
               break;
@@ -348,7 +358,9 @@ void SendPreShutdownHookToPlugins() {
         switch (pic->m_api_version) {
           case 119:
           case 120:
-          case 121: {
+          case 121:
+          case 122:
+          case 123: {
             auto* ppi = dynamic_cast<opencpn_plugin_119*>(pic->m_pplugin);
             if (ppi) ppi->PreShutdownHook();
             break;
@@ -457,7 +469,9 @@ void SendVectorChartObjectInfo(const wxString& chart, const wxString& feature,
           case 118:
           case 119:
           case 120:
-          case 121: {
+          case 121:
+          case 122:
+          case 123: {
             auto* ppi = dynamic_cast<opencpn_plugin_112*>(pic->m_pplugin);
             if (ppi)
               ppi->SendVectorChartObjectInfo(decouple_chart, decouple_feature,

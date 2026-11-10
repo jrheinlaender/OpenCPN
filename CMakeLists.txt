@@ -841,6 +841,7 @@ set(GUI_HDRS
     ${GUI_HDR_DIR}/font_desc.h
     ${GUI_HDR_DIR}/font_mgr.h
     ${GUI_HDR_DIR}/go_to_position_dlg.h
+    ${GUI_HDR_DIR}/grib_record.h
     ${GUI_HDR_DIR}/gshhs.h
     ${GUI_HDR_DIR}/gui_lib.h
     ${GUI_HDR_DIR}/hotkeys_dlg.h
@@ -938,6 +939,7 @@ set(GUI_SRC
     ${GUI_SRC_DIR}/ais_target_query_dlg.cpp
     ${GUI_SRC_DIR}/api_121.cpp
     ${GUI_SRC_DIR}/api_122.cpp
+    ${GUI_SRC_DIR}/api_123.cpp
     ${GUI_SRC_DIR}/canvas_config.cpp
     ${GUI_SRC_DIR}/canvas_menu.cpp
     ${GUI_SRC_DIR}/canvas_options.cpp
@@ -966,6 +968,7 @@ set(GUI_SRC
     ${GUI_SRC_DIR}/font_desc.cpp
     ${GUI_SRC_DIR}/font_mgr.cpp
     ${GUI_SRC_DIR}/go_to_position_dlg.cpp
+    ${GUI_SRC_DIR}/grib_record.cpp
     ${GUI_SRC_DIR}/gshhs.cpp
     ${GUI_SRC_DIR}/gui_lib.cpp
     ${GUI_SRC_DIR}/hotkeys_dlg.cpp

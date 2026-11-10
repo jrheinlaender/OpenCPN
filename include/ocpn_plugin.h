@@ -48,6 +48,8 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <map>
+#include <chrono>
 
 #include <wx/arrstr.h>
 #include <wx/aui/framemanager.h>
@@ -2306,6 +2308,11 @@ public:
 class DECL_EXP opencpn_plugin_122 : public opencpn_plugin_121 {
 public:
   opencpn_plugin_122(void *pmgr) : opencpn_plugin_121(pmgr) {}
+};
+
+class DECL_EXP opencpn_plugin_123 : public opencpn_plugin_122 {
+public:
+  opencpn_plugin_123(void *pmgr) : opencpn_plugin_122(pmgr) {}
 };
 
 //------------------------------------------------------------------
@@ -7446,8 +7453,126 @@ public:
 };
 
 /** Unstable development API */
+/** Experimental Grib interface */
+class GribRecord;
+class GribRecordSet;
+typedef std::chrono::time_point<std::chrono::system_clock, std::chrono::seconds>
+    timestamp;
+
 class HostApi123 : public HostApi122 {
 public:
   HostApi123(Api122Impl *support) : HostApi122(support) {}
+
+  /**
+   * Plugin class for managing GRIB records.
+   *
+   * A GRIB record represents a single parameter (like wind, pressure,
+   * temperature) for one forecast time.
+   */
+  class MeteoRecord {
+  public:
+    /**
+     * Enumeration of meterological parameters for GRIB records.
+     *
+     * Must be in sync with enum in grib_record_set.h
+     */
+    enum MeteoParameters {
+      WIND_VX,         //!< Surface wind velocity X component in m/s
+      WIND_VX850,      //!< Wind velocity X component at 850 hPa in m/s
+      WIND_VX700,      //!< Wind velocity X component at 700 hPa in m/s
+      WIND_VX500,      //!< Wind velocity X component at 500 hPa in m/s
+      WIND_VX300,      //!< Wind velocity X component at 300 hPa in m/s
+      WIND_VY,         //!< Surface wind velocity Y component in m/s
+      WIND_VY850,      //!< Wind velocity Y component at 850 hPa in m/s
+      WIND_VY700,      //!< Wind velocity Y component at 700 hPa in m/s
+      WIND_VY500,      //!< Wind velocity Y component at 500 hPa in m/s
+      WIND_VY300,      //!< Wind velocity Y component at 300 hPa in m/s
+      WIND_GUST,       //!< Wind gust speed at surface in m/s
+      PRESSURE,        //!< Surface pressure in Pascal (Pa)
+      WAVE_HEIGHT,     //!< Significant wave height in meters
+      WAVE_DIRECTION,  //!< Wave direction
+      WAVE_PERIOD,     //!< Wave period
+      CURRENT_VX,      //!< Sea current velocity X component in m/s
+      CURRENT_VY,      //!< Sea current velocity Y component in m/s
+      PRECIPITATION,   //!< Precipitation data in millimeters per hour.
+      CLOUD_COVER,     //!< Total cloud cover in  % (percent, range 0-100%)
+      AIR_TEMP,        //!< Air temperature at 2m in Kelvin (K)
+      AIR_TEMP850,     //!< Air temperature at 850 hPa in Kelvin (K)
+      AIR_TEMP700,     //!< Air temperature at 700 hPa in Kelvin (K)
+      AIR_TEMP500,     //!< Air temperature at 500 hPa in Kelvin (K)
+      AIR_TEMP300,     //!< Air temperature at 300 hPa in Kelvin (K)
+      SEA_TEMP,        //!< Sea surface temperature in Kelvin (K)
+      CAPE,            //!< Convective Available Potential Energy in J/kg
+      RADAR_REFL,  //!< Composite radar reflectivity in dBZ (decibel rel. to Z)
+      HUMIDITY_REL,  //!< Surface relative humidity in % (percent, range 0-100%)
+      HUMIDITY_REL850,  //!< Relative humidity at 850 hPa in % (range 0-100%)
+      HUMIDITY_REL700,  //!< Relative humidity at 700 hPa in % (range 0-100%)
+      HUMIDITY_REL500,  //!< Relative humidity at 500 hPa in % (range 0-100%)
+      HUMIDITY_REL300,  //!< Relative humidity at 300 hPa in % (range 0-100%)
+      GEOPOT_HEIGHT,    //!< Surface geopotential height in gpm (geopotential m)
+      GEOPOT_HEIGHT850,  //!< Geopotential height at 850 hPa in gpm
+      GEOPOT_HEIGHT700,  //!< Geopotential height at 700 hPa in gpm
+      GEOPOT_HEIGHT500,  //!< Geopotential height at 500 hPa in gpm
+      GEOPOT_HEIGHT300   //!< Geopotential height at 300 hPa in gpm
+    };
+
+    /// Construct a MeteoRecord with a copy of the data of the GribRecord
+    MeteoRecord(GribRecord *p_record);
+
+    /// Construct a MeteoRecord from raw data, taking ownership of p_data
+    MeteoRecord(const timestamp issue_time, const timestamp frame_time,
+                const double lat_min, const double lon_min,
+                const double lat_max, const double lon_max, const int lat_num,
+                const int lon_num, const double lat_inc, const double lon_inc,
+                const MeteoParameters type, double *p_data);
+
+    virtual ~MeteoRecord(void);
+
+    // Get/Set
+    timestamp GetFrameTime() const;
+    MeteoParameters GetType() const;
+
+    // Convert to a GribRecord, transferring data
+    GribRecord *AsGribRecord();
+
+  private:
+    // Cannot be a shared_ptr because AsGribRecord needs to convert to raw
+    // pointer
+    GribRecord *m_pRecord;
+  };
+
+  /**
+   * Plugin class for managing GRIB records sets.
+   *
+   * While a MeteoRecord represents a single parameter's grid data (e.g.,
+   * temperature or wind-x component), MeteoRecordSet bundles related records
+   * together to provide a complete meteorological picture for one timestamp.
+   */
+  class MeteoRecordSet {
+  public:
+    MeteoRecordSet(const timestamp stamp) : m_Reference_Time(stamp) {};
+    /**
+     * Convert the GribRecordSet to a MeteoRecordSet, copying all GribRecord
+     * data.
+     */
+    MeteoRecordSet(GribRecordSet *p_set);
+    virtual ~MeteoRecordSet(void);
+
+    /// Adds the record, unless a record of that type already exists
+    void Add(const MeteoRecord::MeteoParameters type, MeteoRecord record);
+
+    /// Convert data to a GribRecordSet, transferring ownership of data
+    GribRecordSet *AsGribRecordSet();
+
+  private:
+    /** Reference time for this set of records, as the number of seconds since
+     * the epoch.
+     */
+    timestamp m_Reference_Time;
+
+    // No need to store pointers, since the actual data of the MeteoRecord
+    // is already a shared_ptr
+    std::map<MeteoRecord::MeteoParameters, MeteoRecord> m_records;
+  };
 };
 #endif  //_PLUGIN_H_
