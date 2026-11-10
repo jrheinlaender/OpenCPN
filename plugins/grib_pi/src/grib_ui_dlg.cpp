@@ -421,7 +421,7 @@ void GRIBUICtrlBar::SetRequestButtonBitmap(int type) {
   m_bpRequest->SetToolTip(_("Start a download request"));
 }
 
-void GRIBUICtrlBar::OpenFile(bool newestFile) {
+void GRIBUICtrlBar::Clear() {
   m_bpPlay->SetBitmapLabel(
       GetScaledBitmap(wxBitmap(play), "play", m_ScaledFactor));
   m_cRecordForecast->Clear();
@@ -429,6 +429,7 @@ void GRIBUICtrlBar::OpenFile(bool newestFile) {
   m_Altitude = 0;
   m_FileIntervalIndex = m_OverlaySettings.m_SlicesPerUpdate;
   delete m_bGRIBActiveFile;
+  m_bGRIBActiveFile = nullptr;
   delete m_pTimelineSet;
   m_pTimelineSet = nullptr;
   m_sTimeline->SetValue(0);
@@ -437,6 +438,14 @@ void GRIBUICtrlBar::OpenFile(bool newestFile) {
   m_pNowMode = false;
   m_SelectionIsSaved = false;
   m_HasAltitude = false;
+}
+
+void GRIBUICtrlBar::OpenFile(bool newestFile) {
+  // Keep old file around in case nothing better can be found
+  GRIBFile* old_file = m_bGRIBActiveFile;
+  m_bGRIBActiveFile = nullptr;
+
+  Clear();
 
   // get more recent file in default directory if necessary
   wxFileName f;
@@ -453,6 +462,19 @@ void GRIBUICtrlBar::OpenFile(bool newestFile) {
   m_bGRIBActiveFile = new GRIBFile(m_file_names, pPlugIn->GetCopyFirstCumRec(),
                                    pPlugIn->GetCopyMissWaveRec(), newestFile);
 
+  // Reject "newest" file if it is older than currently loaded grib
+  if (newestFile && m_bGRIBActiveFile->IsOK() && old_file != nullptr &&
+      m_bGRIBActiveFile->GetRefDateTime() < old_file->GetRefDateTime()) {
+    delete m_bGRIBActiveFile;
+    m_bGRIBActiveFile = old_file;
+  } else {
+    delete old_file;
+  }
+
+  Init();
+}
+
+void GRIBUICtrlBar::Init() {
   ArrayOfGribRecordSets *rsa = m_bGRIBActiveFile->GetRecordSetArrayPtr();
   wxString title;
   if (m_bGRIBActiveFile->IsOK()) {
