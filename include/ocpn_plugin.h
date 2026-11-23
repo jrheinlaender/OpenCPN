@@ -7516,6 +7516,45 @@ public:
       GEOPOT_HEIGHT300   //!< Geopotential height at 300 hPa in gpm
     };
 
+    /// Interpolation and smoothing methods for extracting data between grid points
+    enum InterpolationMethod {
+      /// Use nearest grid value
+      NEAREST = 0,
+      /// Linear interpolation of scalar values
+      // This interpolation looses energy when components of vector fields (wind,
+      // current) are interpolated separately
+      // Example:
+      // Wind at grid point 1: Vector (4 bf North, 3 bf East)
+      // Wind at grid point 2: Vector (4 bf South, 3 bf East)
+      // Interpolated value at midpoint: Vector (0 bf North, 3 bf East) -> Scalar
+      // 3 bf speed and direction E
+      SCALAR = 1,
+      /// Linear interpolation of vector fields
+      // This interpolation converts vectors to polar representation (magnitude
+      // and angle)
+      // Example:
+      // Wind at grid point 1: Vector (4 bf North, 3 bf East) -> Scalar 5 bf speed
+      // and direction 37°
+      // Wind at grid point 2: Vector (4 bf South, 3 bf East) -> Scalar 5 bf speed
+      // and direction 143°
+      // Interpolated value at midpoint: 5 bf speed and direction E -> Vector (0
+      // bf North, 5 bf E)
+      VECTOR = 2
+    };
+    enum SmoothingMethod {
+      /// Allow jumps in derivative at grid points
+      // Example:
+      // Value at grid point x1: v1
+      // Value at grid point x2: v2
+      // Interpolate at position x1 <= x <= x2
+      // Find k = (x - x1) / (x2 - x1)
+      // Interpolated value: (1 - k) * v1 + k * v2
+      NO_SMOOTHING = 0,
+      /// Attempt to have continous derivatives at grid points
+      // Example:
+      // Calculate k as above, then set k = (3 - 2 * k) * k * k
+      PSEUDO_HERMITE = 1
+    };
     /// Construct a MeteoRecord with a copy of the data of the GribRecord
     MeteoRecord(GribRecord *p_record);
 
@@ -7534,6 +7573,14 @@ public:
 
     // Convert to a GribRecord, transferring data
     GribRecord *AsGribRecord();
+
+    /// Extract data between grid points of the given records
+    static bool GetInterpolatedValues(
+      double& magnitude, double angle,
+      const MeteoRecord& x, const MeteoRecord& y,
+      const double lon, const double lat,
+      const InterpolationMethod spatial_im, const SmoothingMethod spatial_sm
+    );
 
   private:
     // Cannot be a shared_ptr because AsGribRecord needs to convert to raw

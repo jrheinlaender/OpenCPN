@@ -145,6 +145,17 @@ GribRecord* HostApi123::MeteoRecord::AsGribRecord() {
   return result;
 }
 
+bool HostApi123::MeteoRecord::GetInterpolatedValues(
+    double& magnitude, double angle,
+    const HostApi123::MeteoRecord& x, const HostApi123::MeteoRecord& y,
+    const double lon, const double lat,
+    const HostApi123::MeteoRecord::InterpolationMethod spatial_im,
+    const HostApi123::MeteoRecord::SmoothingMethod spatial_sm)
+{
+  return GribRecord::GetInterpolatedValues(magnitude, angle, x.m_pRecord, y.m_pRecord,
+      lon, lat, GribRecord::InterpolationMethod(spatial_im), GribRecord::SmoothingMethod(spatial_sm));
+}
+
 HostApi123::MeteoRecordSet::MeteoRecordSet(GribRecordSet* p_set) {
   for (int p = 0; p < Idx_COUNT; ++p) {
     GribRecord* p_record = p_set->m_GribRecordPtrArray[p];
