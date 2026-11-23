@@ -7555,6 +7555,10 @@ public:
       // Calculate k as above, then set k = (3 - 2 * k) * k * k
       PSEUDO_HERMITE = 1
     };
+
+    /// Create empty record dated now()
+    MeteoRecord();
+
     /// Construct a MeteoRecord with a copy of the data of the GribRecord
     MeteoRecord(GribRecord *p_record);
 
@@ -7605,6 +7609,11 @@ public:
     MeteoRecordSet(GribRecordSet *p_set);
     virtual ~MeteoRecordSet(void);
 
+    timestamp GetReferenceTime() const { return m_Reference_Time; };
+
+    /// Return the given record, or insert an empty one
+    const MeteoRecord& operator[](const MeteoRecord::MeteoParameters type);
+
     /// Adds the record, unless a record of that type already exists
     void Add(const MeteoRecord::MeteoParameters type, MeteoRecord record);
 
@@ -7621,5 +7630,29 @@ public:
     // is already a shared_ptr
     std::map<MeteoRecord::MeteoParameters, MeteoRecord> m_records;
   };
+
+  /**
+   * Plugin class for managing GRIB timelines.
+   *
+   * A timeline consists of a sequence of MeteoRecordSets, ordered by reference
+   * time
+   */
+  class MeteoTimeline {
+  public:
+    MeteoTimeline() {};
+    virtual ~MeteoTimeline() {};
+
+    bool Empty() const { return m_timeline.empty(); }
+
+    /// Remove all MeteoRecordSets
+    void Clear();
+
+    /// Append a MeteoRecordSet, without checking for correct time sequence
+    void Append(MeteoRecordSet set);
+
+  private:
+    std::vector<MeteoRecordSet> m_timeline;
+  };
 };
+
 #endif  //_PLUGIN_H_

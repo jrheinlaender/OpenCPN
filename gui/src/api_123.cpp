@@ -116,6 +116,10 @@ public:
 // GRIB_TIMELINE_RECORD_REQUEST because it transfers a copy
 // of the GribRecordSet pointer, both copies having ownership of the data?
 
+HostApi123::MeteoRecord::MeteoRecord() {
+  m_pRecord = nullptr;
+}
+
 HostApi123::MeteoRecord::MeteoRecord(GribRecord* p_record) {
   m_pRecord = new GribRecord{*p_record};
 }
@@ -167,6 +171,11 @@ HostApi123::MeteoRecordSet::MeteoRecordSet(GribRecordSet* p_set) {
 
 HostApi123::MeteoRecordSet::~MeteoRecordSet(void) {}
 
+const HostApi123::MeteoRecord& HostApi123::MeteoRecordSet::operator[](
+  const MeteoRecord::MeteoParameters type) {
+    return m_records[type];
+}
+
 void HostApi123::MeteoRecordSet::Add(
     const HostApi123::MeteoRecord::MeteoParameters type, MeteoRecord record) {
   m_records.emplace(type, std::move(record));
@@ -185,4 +194,12 @@ GribRecordSet* HostApi123::MeteoRecordSet::AsGribRecordSet() {
   // Note: Pointers to GribRecords have already been nulled by AsGribRecord()
   m_records.clear();
   return result;
+}
+
+void HostApi123::MeteoTimeline::Clear() {
+  m_timeline.clear();
+}
+
+void HostApi123::MeteoTimeline::Append(MeteoRecordSet set) {
+  m_timeline.emplace_back(std::move(set));
 }
